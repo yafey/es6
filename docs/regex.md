@@ -132,6 +132,17 @@ codePointLength(s) // 2
 
 上面代码中，不加`u`修饰符，就无法识别非规范的`K`字符。
 
+**（6）转义**
+
+没有`u`修饰符的情况下，正则中没有定义的转义（如逗号的转义`\,`）无效，而在`u`模式会报错。
+
+```javascript
+/\,/ // /\,/
+/\,/u // 报错
+```
+
+上面代码中，没有`u`修饰符时，逗号前面的反斜杠是无效的，加了`u`修饰符就报错。
+
 ## RegExp.prototype.unicode 属性
 
 正则实例对象新增`unicode`属性，表示是否设置了`u`修饰符。
@@ -307,7 +318,7 @@ ES6 为正则表达式新增了`flags`属性，会返回正则表达式的修饰
 
 正则表达式中，点（`.`）是一个特殊字符，代表任意的单个字符，但是有两个例外。一个是四个字节的 UTF-16 字符，这个可以用`u`修饰符解决；另一个是行终止符（line terminator character）。
 
-所谓行终止符，就是该字符表示一行的终结。以下四个字符属于”行终止符“。
+所谓行终止符，就是该字符表示一行的终结。以下四个字符属于“行终止符”。
 
 - U+000A 换行符（`\n`）
 - U+000D 回车符（`\r`）
@@ -352,16 +363,16 @@ re.flags // 's'
 
 JavaScript 语言的正则表达式，只支持先行断言（lookahead）和先行否定断言（negative lookahead），不支持后行断言（lookbehind）和后行否定断言（negative lookbehind）。ES2018 引入[后行断言](https://github.com/tc39/proposal-regexp-lookbehind)，V8 引擎 4.9 版（Chrome 62）已经支持。
 
-”先行断言“指的是，`x`只有在`y`前面才匹配，必须写成`/x(?=y)/`。比如，只匹配百分号之前的数字，要写成`/\d+(?=%)/`。”先行否定断言“指的是，`x`只有不在`y`前面才匹配，必须写成`/x(?!y)/`。比如，只匹配不在百分号之前的数字，要写成`/\d+(?!%)/`。
+“先行断言”指的是，`x`只有在`y`前面才匹配，必须写成`/x(?=y)/`。比如，只匹配百分号之前的数字，要写成`/\d+(?=%)/`。“先行否定断言”指的是，`x`只有不在`y`前面才匹配，必须写成`/x(?!y)/`。比如，只匹配不在百分号之前的数字，要写成`/\d+(?!%)/`。
 
 ```javascript
 /\d+(?=%)/.exec('100% of US presidents have been male')  // ["100"]
 /\d+(?!%)/.exec('that’s all 44 of them')                 // ["44"]
 ```
 
-上面两个字符串，如果互换正则表达式，就不会得到相同结果。另外，还可以看到，”先行断言“括号之中的部分（`(?=%)`），是不计入返回结果的。
+上面两个字符串，如果互换正则表达式，就不会得到相同结果。另外，还可以看到，“先行断言”括号之中的部分（`(?=%)`），是不计入返回结果的。
 
-“后行断言”正好与“先行断言”相反，`x`只有在`y`后面才匹配，必须写成`/(?<=y)x/`。比如，只匹配美元符号之后的数字，要写成`/(?<=\$)\d+/`。”后行否定断言“则与”先行否定断言“相反，`x`只有不在`y`后面才匹配，必须写成`/(?<!y)x/`。比如，只匹配不在美元符号后面的数字，要写成`/(?<!\$)\d+/`。
+“后行断言”正好与“先行断言”相反，`x`只有在`y`后面才匹配，必须写成`/(?<=y)x/`。比如，只匹配美元符号之后的数字，要写成`/(?<=\$)\d+/`。“后行否定断言”则与“先行否定断言”相反，`x`只有不在`y`后面才匹配，必须写成`/(?<!y)x/`。比如，只匹配不在美元符号后面的数字，要写成`/(?<!\$)\d+/`。
 
 ```javascript
 /(?<=\$)\d+/.exec('Benjamin Franklin is on the $100 bill')  // ["100"]
@@ -550,7 +561,7 @@ let re = /(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})/u;
    S, // 原字符串 2015-01-02
    groups // 具名组构成的一个对象 {year, month, day}
  ) => {
- let {day, month, year} = args[args.length - 1];
+ let {day, month, year} = groups;
  return `${day}/${month}/${year}`;
 });
 ```
@@ -583,7 +594,75 @@ RE_TWICE.test('abc!abc!abc') // true
 RE_TWICE.test('abc!abc!ab') // false
 ```
 
-## String.prototype.matchAll
+## 正则匹配索引
+
+正则匹配结果的开始位置和结束位置，目前获取并不是很方便。正则实例的`exex()`方法，返回结果有一个`index`属性，可以获取整个匹配结果的开始位置，但是如果包含组匹配，每个组匹配的开始位置，很难拿到。
+
+现在有一个[第三阶段提案](https://github.com/tc39/proposal-regexp-match-Indices)，为`exec()`方法的返回结果加上`indices`属性，在这个属性上面可以拿到匹配的开始位置和结束位置。
+
+```javascript
+const text = 'zabbcdef';
+const re = /ab/;
+const result = re.exec(text);
+
+result.index // 1
+result.indices // [ [1, 3] ]
+```
+
+上面例子中，`exec()`方法的返回结果`result`，它的`index`属性是整个匹配结果（`ab`）的开始位置，而它的`indices`属性是一个数组，成员是每个匹配的开始位置和结束位置的数组。由于该例子的正则表达式没有组匹配，所以`indices`数组只有一个成员，表示整个匹配的开始位置是`1`，结束位置是`3`。
+
+注意，开始位置包含在匹配结果之中，但是结束位置不包含在匹配结果之中。比如，匹配结果为`ab`，分别是原始字符串的第1位和第2位，那么结束位置就是第3位。
+
+如果正则表达式包含组匹配，那么`indices`属性对应的数组就会包含多个成员，提供每个组匹配的开始位置和结束位置。
+
+```javascript
+const text = 'zabbcdef';
+const re = /ab+(cd)/;
+const result = re.exec(text);
+
+result.indices // [ [ 1, 6 ], [ 4, 6 ] ]
+```
+
+上面例子中，正则表达式包含一个组匹配，那么`indices`属性数组就有两个成员，第一个成员是整个匹配结果（`abbcd`）的开始位置和结束位置，第二个成员是组匹配（`cd`）的开始位置和结束位置。
+
+下面是多个组匹配的例子。
+
+```javascript
+const text = 'zabbcdef';
+const re = /ab+(cd(ef))/;
+const result = re.exec(text);
+
+result.indices // [ [1, 8], [4, 8], [6, 8] ]
+```
+
+上面例子中，正则表达式包含两个组匹配，所以`indices`属性数组就有三个成员。
+
+如果正则表达式包含具名组匹配，`indices`属性数组还会有一个`groups`属性。该属性是一个对象，可以从该对象获取具名组匹配的开始位置和结束位置。
+
+```javascript
+const text = 'zabbcdef';
+const re = /ab+(?<Z>cd)/;
+const result = re.exec(text);
+
+result.indices.groups // { Z: [ 4, 6 ] }
+```
+
+上面例子中，`exec()`方法返回结果的`indices.groups`属性是一个对象，提供具名组匹配`Z`的开始位置和结束位置。
+
+如果如何获取成功组匹配，`indices`属性数组的对应成员则为`undefined`，`indices.groups`属性对象的对应成员也是`undefined`。
+
+```javascript
+const text = 'zabbcdef';
+const re = /ab+(?<Z>ce)?/;
+const result = re.exec(text);
+
+result.indices[1] // undefined
+result.indices.groups['Z'] // undefined
+```
+
+上面例子中，由于组匹配不成功，所以`indices`属性数组和`indices.groups`属性对象对应的组匹配成员都是`undefined`。
+
+## String.prototype.matchAll()
 
 如果一个正则表达式在字符串里面有多个匹配，现在一般使用`g`修饰符或`y`修饰符，在循环里面逐一取出。
 
@@ -607,7 +686,7 @@ matches
 
 上面代码中，`while`循环取出每一轮的正则匹配，一共三轮。
 
-目前有一个[提案](https://github.com/tc39/proposal-string-matchall)，增加了`String.prototype.matchAll`方法，可以一次性取出所有匹配。不过，它返回的是一个遍历器（Iterator），而不是数组。
+[ES2020](https://github.com/tc39/proposal-string-matchall) 增加了`String.prototype.matchAll()`方法，可以一次性取出所有匹配。不过，它返回的是一个遍历器（Iterator），而不是数组。
 
 ```javascript
 const string = 'test1test2test3';
@@ -625,13 +704,12 @@ for (const match of string.matchAll(regex)) {
 
 上面代码中，由于`string.matchAll(regex)`返回的是遍历器，所以可以用`for...of`循环取出。相对于返回数组，返回遍历器的好处在于，如果匹配结果是一个很大的数组，那么遍历器比较节省资源。
 
-遍历器转为数组是非常简单的，使用`...`运算符和`Array.from`方法就可以了。
+遍历器转为数组是非常简单的，使用`...`运算符和`Array.from()`方法就可以了。
 
 ```javascript
 // 转为数组方法一
 [...string.matchAll(regex)]
 
 // 转为数组方法二
-Array.from(string.matchAll(regex));
+Array.from(string.matchAll(regex))
 ```
-

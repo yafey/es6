@@ -40,9 +40,9 @@ Reflect.has(Object, 'assign') // true
 ```javascript
 Proxy(target, {
   set: function(target, name, value, receiver) {
-    var success = Reflect.set(target,name, value, receiver);
+    var success = Reflect.set(target, name, value, receiver);
     if (success) {
-      log('property ' + name + ' on ' + target + ' set to ' + value);
+      console.log('property ' + name + ' on ' + target + ' set to ' + value);
     }
     return success;
   }
@@ -186,7 +186,7 @@ myObject.foo // 4
 myReceiverObject.foo // 1
 ```
 
-注意，如果 Proxy 对象和 Reflect 对象联合使用，前者拦截赋值操作，后者完成赋值的默认行为，而且传入了`receiver`，那么`Reflect.set`会触发`Proxy.defineProperty`拦截。
+注意，如果 `Proxy`对象和 `Reflect`对象联合使用，前者拦截赋值操作，后者完成赋值的默认行为，而且传入了`receiver`，那么`Reflect.set`会触发`Proxy.defineProperty`拦截。
 
 ```javascript
 let p = {
@@ -210,7 +210,7 @@ obj.a = 'A';
 // defineProperty
 ```
 
-上面代码中，`Proxy.set`拦截里面使用了`Reflect.set`，而且传入了`receiver`，导致触发`Proxy.defineProperty`拦截。这是因为`Proxy.set`的`receiver`参数总是指向当前的 Proxy 实例（即上例的`obj`），而`Reflect.set`一旦传入`receiver`，就会将属性赋值到`receiver`上面（即`obj`），导致触发`defineProperty`拦截。如果`Reflect.set`没有传入`receiver`，那么就不会触发`defineProperty`拦截。
+上面代码中，`Proxy.set`拦截里面使用了`Reflect.set`，而且传入了`receiver`，导致触发`Proxy.defineProperty`拦截。这是因为`Proxy.set`的`receiver`参数总是指向当前的 `Proxy`实例（即上例的`obj`），而`Reflect.set`一旦传入`receiver`，就会将属性赋值到`receiver`上面（即`obj`），导致触发`defineProperty`拦截。如果`Reflect.set`没有传入`receiver`，那么就不会触发`defineProperty`拦截。
 
 ```javascript
 let p = {
@@ -256,7 +256,7 @@ var myObject = {
 Reflect.has(myObject, 'foo') // true
 ```
 
-如果第一个参数不是对象，`Reflect.has`和`in`运算符都会报错。
+如果`Reflect.has()`方法的第一个参数不是对象，会报错。
 
 ### Reflect.deleteProperty(obj, name)
 
@@ -274,6 +274,8 @@ Reflect.deleteProperty(myObj, 'foo');
 
 该方法返回一个布尔值。如果删除成功，或者被删除的属性不存在，返回`true`；删除失败，被删除的属性依然存在，返回`false`。
 
+如果`Reflect.deleteProperty()`方法的第一个参数不是对象，会报错。
+
 ### Reflect.construct(target, args)
 
 `Reflect.construct`方法等同于`new target(...args)`，这提供了一种不使用`new`，来调用构造函数的方法。
@@ -289,6 +291,8 @@ const instance = new Greeting('张三');
 // Reflect.construct 的写法
 const instance = Reflect.construct(Greeting, ['张三']);
 ```
+
+如果`Reflect.construct()`方法的第一个参数不是函数，会报错。
 
 ### Reflect.getPrototypeOf(obj)
 
@@ -507,6 +511,8 @@ Object.getOwnPropertySymbols(myObject)
 Reflect.ownKeys(myObject)
 // ['foo', 'bar', Symbol(baz), Symbol(bing)]
 ```
+
+如果`Reflect.ownKeys()`方法的第一个参数不是对象，会报错。
 
 ## 实例：使用 Proxy 实现观察者模式
 

@@ -89,7 +89,7 @@ var firstName = 'Michael';
 var lastName = 'Jackson';
 var year = 1958;
 
-export {firstName, lastName, year};
+export { firstName, lastName, year };
 ```
 
 上面代码在`export`命令后面，使用大括号指定所要输出的一组变量。它与前一种写法（直接放置在`var`语句前）是等价的，但是应该优先考虑使用这种写法。因为这样就可以在脚本尾部，一眼看清楚输出了哪些变量。
@@ -190,7 +190,7 @@ foo()
 
 ```javascript
 // main.js
-import {firstName, lastName, year} from './profile.js';
+import { firstName, lastName, year } from './profile.js';
 
 function setName(element) {
   element.textContent = firstName + ' ' + lastName;
@@ -221,7 +221,7 @@ import {a} from './xxx.js'
 a.foo = 'hello'; // 合法操作
 ```
 
-上面代码中，`a`的属性可以成功改写，并且其他模块也可以读到改写后的值。不过，这种写法很难查错，建议凡是输入的变量，都当作完全只读，轻易不要改变它的属性。
+上面代码中，`a`的属性可以成功改写，并且其他模块也可以读到改写后的值。不过，这种写法很难查错，建议凡是输入的变量，都当作完全只读，不要轻易改变它的属性。
 
 `import`后面的`from`指定模块文件的位置，可以是相对路径，也可以是绝对路径，`.js`后缀可以省略。如果只是模块名，不带有路径，那么必须有配置文件，告诉 JavaScript 引擎该模块的位置。
 
@@ -464,7 +464,7 @@ import _ from 'lodash';
 如果想在一条`import`语句中，同时输入默认方法和其他接口，可以写成下面这样。
 
 ```javascript
-import _, { each, each as forEach } from 'lodash';
+import _, { each, forEach } from 'lodash';
 ```
 
 对应上面代码的`export`语句如下。
@@ -670,7 +670,7 @@ const myModual = require(path);
 
 上面的语句就是动态加载，`require`到底加载哪一个模块，只有运行时才知道。`import`命令做不到这一点。
 
-因此，有一个[提案](https://github.com/tc39/proposal-dynamic-import)，建议引入`import()`函数，完成动态加载。
+[ES2020提案](https://github.com/tc39/proposal-dynamic-import) 引入`import()`函数，支持动态加载模块。
 
 ```javascript
 import(specifier)
@@ -800,3 +800,4 @@ async function main() {
 }
 main();
 ```
+

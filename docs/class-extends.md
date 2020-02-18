@@ -138,7 +138,7 @@ class B extends A {
 
 上面代码中，子类`B`的构造函数之中的`super()`，代表调用父类的构造函数。这是必须的，否则 JavaScript 引擎会报错。
 
-注意，`super`虽然代表了父类`A`的构造函数，但是返回的是子类`B`的实例，即`super`内部的`this`指的是`B`，因此`super()`在这里相当于`A.prototype.constructor.call(this)`。
+注意，`super`虽然代表了父类`A`的构造函数，但是返回的是子类`B`的实例，即`super`内部的`this`指的是`B`的实例，因此`super()`在这里相当于`A.prototype.constructor.call(this)`。
 
 ```javascript
 class A {
@@ -169,7 +169,7 @@ class B extends A {
 }
 ```
 
-上面代码中，`super()`用在`B`类的`m`方法之中，就会造成句法错误。
+上面代码中，`super()`用在`B`类的`m`方法之中，就会造成语法错误。
 
 第二种情况，`super`作为对象时，在普通方法中，指向父类的原型对象；在静态方法中，指向父类。
 
@@ -447,7 +447,7 @@ B.__proto__ = A;
 这两条继承链，可以这样理解：作为一个对象，子类（`B`）的原型（`__proto__`属性）是父类（`A`）；作为一个构造函数，子类（`B`）的原型对象（`prototype`属性）是父类的原型对象（`prototype`属性）的实例。
 
 ```javascript
-Object.create(A.prototype);
+B.prototype = Object.create(A.prototype);
 // 等同于
 B.prototype.__proto__ = A.prototype;
 ```
@@ -688,11 +688,17 @@ const c = {...a, ...b}; // {a: 'a', b: 'b'}
 
 ```javascript
 function mix(...mixins) {
-  class Mix {}
+  class Mix {
+    constructor() {
+      for (let mixin of mixins) {
+        copyProperties(this, new mixin()); // 拷贝实例属性
+      }
+    }
+  }
 
   for (let mixin of mixins) {
-    copyProperties(Mix.prototype, mixin); // 拷贝实例属性
-    copyProperties(Mix.prototype, Reflect.getPrototypeOf(mixin)); // 拷贝原型属性
+    copyProperties(Mix, mixin); // 拷贝静态属性
+    copyProperties(Mix.prototype, mixin.prototype); // 拷贝原型属性
   }
 
   return Mix;
@@ -700,9 +706,9 @@ function mix(...mixins) {
 
 function copyProperties(target, source) {
   for (let key of Reflect.ownKeys(source)) {
-    if ( key !== "constructor"
-      && key !== "prototype"
-      && key !== "name"
+    if ( key !== 'constructor'
+      && key !== 'prototype'
+      && key !== 'name'
     ) {
       let desc = Object.getOwnPropertyDescriptor(source, key);
       Object.defineProperty(target, key, desc);

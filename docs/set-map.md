@@ -6,7 +6,7 @@
 
 ES6 提供了新的数据结构 Set。它类似于数组，但是成员的值都是唯一的，没有重复的值。
 
-Set 本身是一个构造函数，用来生成 Set 数据结构。
+`Set`本身是一个构造函数，用来生成 Set 数据结构。
 
 ```javascript
 const s = new Set();
@@ -19,9 +19,9 @@ for (let i of s) {
 // 2 3 5 4
 ```
 
-上面代码通过`add`方法向 Set 结构加入成员，结果表明 Set 结构不会添加重复的值。
+上面代码通过`add()`方法向 Set 结构加入成员，结果表明 Set 结构不会添加重复的值。
 
-Set 函数可以接受一个数组（或者具有 iterable 接口的其他数据结构）作为参数，用来初始化。
+`Set`函数可以接受一个数组（或者具有 iterable 接口的其他数据结构）作为参数，用来初始化。
 
 ```javascript
 // 例一
@@ -54,7 +54,14 @@ set.size // 56
 [...new Set(array)]
 ```
 
-向 Set 加入值的时候，不会发生类型转换，所以`5`和`"5"`是两个不同的值。Set 内部判断两个值是否不同，使用的算法叫做“Same-value-zero equality”，它类似于精确相等运算符（`===`），主要的区别是`NaN`等于自身，而精确相等运算符认为`NaN`不等于自身。
+上面的方法也可以用于，去除字符串里面的重复字符。
+
+```javascript
+[...new Set('ababbc')].join('')
+// "abc"
+```
+
+向 Set 加入值的时候，不会发生类型转换，所以`5`和`"5"`是两个不同的值。Set 内部判断两个值是否不同，使用的算法叫做“Same-value-zero equality”，它类似于精确相等运算符（`===`），主要的区别是向 Set 加入值时认为`NaN`等于自身，而精确相等运算符认为`NaN`不等于自身。
 
 ```javascript
 let set = new Set();
@@ -65,7 +72,7 @@ set.add(b);
 set // Set {NaN}
 ```
 
-上面代码向 Set 实例添加了两个`NaN`，但是只能加入一个。这表明，在 Set 内部，两个`NaN`是相等。
+上面代码向 Set 实例添加了两次`NaN`，但是只会加入一个。这表明，在 Set 内部，两个`NaN`是相等的。
 
 另外，两个对象总是不相等的。
 
@@ -90,10 +97,10 @@ Set 结构的实例有以下属性。
 
 Set 实例的方法分为两大类：操作方法（用于操作数据）和遍历方法（用于遍历成员）。下面先介绍四个操作方法。
 
-- `add(value)`：添加某个值，返回 Set 结构本身。
-- `delete(value)`：删除某个值，返回一个布尔值，表示删除是否成功。
-- `has(value)`：返回一个布尔值，表示该值是否为`Set`的成员。
-- `clear()`：清除所有成员，没有返回值。
+- `Set.prototype.add(value)`：添加某个值，返回 Set 结构本身。
+- `Set.prototype.delete(value)`：删除某个值，返回一个布尔值，表示删除是否成功。
+- `Set.prototype.has(value)`：返回一个布尔值，表示该值是否为`Set`的成员。
+- `Set.prototype.clear()`：清除所有成员，没有返回值。
 
 上面这些属性和方法的实例如下。
 
@@ -156,10 +163,10 @@ dedupe([1, 1, 2, 3]) // [1, 2, 3]
 
 Set 结构的实例有四个遍历方法，可以用于遍历成员。
 
-- `keys()`：返回键名的遍历器
-- `values()`：返回键值的遍历器
-- `entries()`：返回键值对的遍历器
-- `forEach()`：使用回调函数遍历每个成员
+- `Set.prototype.keys()`：返回键名的遍历器
+- `Set.prototype.values()`：返回键值的遍历器
+- `Set.prototype.entries()`：返回键值对的遍历器
+- `Set.prototype.forEach()`：使用回调函数遍历每个成员
 
 需要特别指出的是，`Set`的遍历顺序就是插入顺序。这个特性有时非常有用，比如使用 Set 保存一个回调函数列表，调用时就能保证按照添加顺序调用。
 
@@ -219,7 +226,7 @@ for (let x of set) {
 Set 结构的实例与数组一样，也拥有`forEach`方法，用于对每个成员执行某种操作，没有返回值。
 
 ```javascript
-set = new Set([1, 4, 9]);
+let set = new Set([1, 4, 9]);
 set.forEach((value, key) => console.log(key + ' : ' + value))
 // 1 : 1
 // 4 : 4
@@ -347,7 +354,7 @@ const ws = new WeakSet(b);
 // Uncaught TypeError: Invalid value used in weak set(…)
 ```
 
-上面代码中，数组`b`的成员不是对象，加入 WeaKSet 就会报错。
+上面代码中，数组`b`的成员不是对象，加入 WeakSet 就会报错。
 
 WeakSet 结构有以下三个方法。
 
@@ -515,7 +522,7 @@ map.set(['a'], 555);
 map.get(['a']) // undefined
 ```
 
-上面代码的`set`和`get`方法，表面是针对同一个键，但实际上这是两个值，内存地址是不一样的，因此`get`方法无法读取该键，返回`undefined`。
+上面代码的`set`和`get`方法，表面是针对同一个键，但实际上这是两个不同的数组实例，内存地址是不一样的，因此`get`方法无法读取该键，返回`undefined`。
 
 同理，同样的值的两个实例，在 Map 结构中被视为两个键。
 
@@ -573,7 +580,7 @@ map.set('bar', false);
 map.size // 2
 ```
 
-**（2）set(key, value)**
+**（2）Map.prototype.set(key, value)**
 
 `set`方法设置键名`key`对应的键值为`value`，然后返回整个 Map 结构。如果`key`已经有值，则键值会被更新，否则就新生成该键。
 
@@ -594,7 +601,7 @@ let map = new Map()
   .set(3, 'c');
 ```
 
-**（3）get(key)**
+**（3）Map.prototype.get(key)**
 
 `get`方法读取`key`对应的键值，如果找不到`key`，返回`undefined`。
 
@@ -607,7 +614,7 @@ m.set(hello, 'Hello ES6!') // 键是函数
 m.get(hello)  // Hello ES6!
 ```
 
-**（4）has(key)**
+**（4）Map.prototype.has(key)**
 
 `has`方法返回一个布尔值，表示某个键是否在当前 Map 对象之中。
 
@@ -624,7 +631,7 @@ m.has(262)           // true
 m.has(undefined)     // true
 ```
 
-**（5）delete(key)**
+**（5）Map.prototype.delete(key)**
 
 `delete`方法删除某个键，返回`true`。如果删除失败，返回`false`。
 
@@ -637,7 +644,7 @@ m.delete(undefined)
 m.has(undefined)       // false
 ```
 
-**（6）clear()**
+**（6）Map.prototype.clear()**
 
 `clear`方法清除所有成员，没有返回值。
 
@@ -655,10 +662,10 @@ map.size // 0
 
 Map 结构原生提供三个遍历器生成函数和一个遍历方法。
 
-- `keys()`：返回键名的遍历器。
-- `values()`：返回键值的遍历器。
-- `entries()`：返回所有成员的遍历器。
-- `forEach()`：遍历 Map 的所有成员。
+- `Map.prototype.keys()`：返回键名的遍历器。
+- `Map.prototype.values()`：返回键值的遍历器。
+- `Map.prototype.entries()`：返回所有成员的遍历器。
+- `Map.prototype.forEach()`：遍历 Map 的所有成员。
 
 需要特别注意的是，Map 的遍历顺序就是插入顺序。
 
@@ -825,6 +832,15 @@ strMapToObj(myMap)
 如果有非字符串的键名，那么这个键名会被转成字符串，再作为对象的键名。
 
 **（4）对象转为 Map**
+
+对象转为 Map 可以通过`Object.entries()`。
+
+```javascript
+let obj = {"a":1, "b":2};
+let map = new Map(Object.entries(obj));
+```
+
+此外，也可以自己实现一个转换函数。
 
 ```javascript
 function objToStrMap(obj) {
@@ -1076,18 +1092,20 @@ undefined
 前文说过，WeakMap 应用的典型场合就是 DOM 节点作为键名。下面是一个例子。
 
 ```javascript
-let myElement = document.getElementById('logo');
 let myWeakmap = new WeakMap();
 
-myWeakmap.set(myElement, {timesClicked: 0});
+myWeakmap.set(
+  document.getElementById('logo'),
+  {timesClicked: 0})
+;
 
-myElement.addEventListener('click', function() {
-  let logoData = myWeakmap.get(myElement);
+document.getElementById('logo').addEventListener('click', function() {
+  let logoData = myWeakmap.get(document.getElementById('logo'));
   logoData.timesClicked++;
 }, false);
 ```
 
-上面代码中，`myElement`是一个 DOM 节点，每当发生`click`事件，就更新一下状态。我们将这个状态作为键值放在 WeakMap 里，对应的键名就是`myElement`。一旦这个 DOM 节点删除，该状态就会自动消失，不存在内存泄漏风险。
+上面代码中，`document.getElementById('logo')`是一个 DOM 节点，每当发生`click`事件，就更新一下状态。我们将这个状态作为键值放在 WeakMap 里，对应的键名就是这个节点对象。一旦这个 DOM 节点删除，该状态就会自动消失，不存在内存泄漏风险。
 
 WeakMap 的另一个用处是部署私有属性。
 

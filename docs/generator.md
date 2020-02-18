@@ -310,7 +310,7 @@ wrapped().next('hello!')
 
 ## for...of 循环
 
-`for...of`循环可以自动遍历 Generator 函数时生成的`Iterator`对象，且此时不再需要调用`next`方法。
+`for...of`循环可以自动遍历 Generator 函数运行时生成的`Iterator`对象，且此时不再需要调用`next`方法。
 
 ```javascript
 function* foo() {
@@ -700,7 +700,7 @@ g.next()        // { value: 1, done: false }
 g.return() // { value: undefined, done: true }
 ```
 
-如果 Generator 函数内部有`try...finally`代码块，那么`return`方法会推迟到`finally`代码块执行完再执行。
+如果 Generator 函数内部有`try...finally`代码块，且正在执行`try`代码块，那么`return`方法会导致立刻进入`finally`代码块，执行完以后，整个函数才会结束。
 
 ```javascript
 function* numbers () {
@@ -722,7 +722,7 @@ g.next() // { value: 5, done: false }
 g.next() // { value: 7, done: true }
 ```
 
-上面代码中，调用`return`方法后，就开始执行`finally`代码块，然后等到`finally`代码块执行完，再执行`return`方法。
+上面代码中，调用`return()`方法后，就开始执行`finally`代码块，不执行`try`里面剩下的代码了，然后等到`finally`代码块执行完，再返回`return()`方法指定的返回值。
 
 ## next()、throw()、return() 的共同点
 
@@ -764,7 +764,7 @@ gen.return(2); // Object {value: 2, done: true}
 
 ## yield\* 表达式
 
-如果在 Generator 函数内部，调用另一个 Generator 函数，默认情况下是没有效果的。
+如果在 Generator 函数内部，调用另一个 Generator 函数。需要在前者的函数体内部，自己手动完成遍历。
 
 ```javascript
 function* foo() {
@@ -774,20 +774,25 @@ function* foo() {
 
 function* bar() {
   yield 'x';
-  foo();
+  // 手动遍历 foo()
+  for (let i of foo()) {
+    console.log(i);
+  }
   yield 'y';
 }
 
 for (let v of bar()){
   console.log(v);
 }
-// "x"
-// "y"
+// x
+// a
+// b
+// y
 ```
 
-上面代码中，`foo`和`bar`都是 Generator 函数，在`bar`里面调用`foo`，是不会有效果的。
+上面代码中，`foo`和`bar`都是 Generator 函数，在`bar`里面调用`foo`，就需要手动遍历`foo`。如果有多个 Generator 函数嵌套，写起来就非常麻烦。
 
-这个就需要用到`yield*`表达式，用来在一个 Generator 函数里面执行另一个 Generator 函数。
+ES6 提供了`yield*`表达式，作为解决办法，用来在一个 Generator 函数里面执行另一个 Generator 函数。
 
 ```javascript
 function* bar() {
@@ -1003,6 +1008,12 @@ for(let x of iterTree(tree)) {
 // c
 // d
 // e
+```
+
+由于扩展运算符`...`默认调用 Iterator 接口，所以上面这个函数也可以用于嵌套数组的平铺。
+
+```javascript
+[...iterTree(tree)] // ["a", "b", "c", "d", "e"]
 ```
 
 下面是一个稍微复杂的例子，使用`yield*`语句遍历完全二叉树。

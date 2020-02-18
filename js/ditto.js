@@ -95,6 +95,8 @@ function init_sidebar_section() {
             }
             location.hash = menu[i + 1];
         });
+        // create_banner($(ditto.sidebar_id).find('p:nth-child(3)').first());
+
     }, "text").fail(function() {
         alert("Opps! can't find the sidebar file to display!");
     });
@@ -207,6 +209,30 @@ function li_create_linkage(li_tag, header_level) {
   });
 }
 
+function create_banner(element) {
+  // 2020年3月22日
+  var deadline = new Date(2020, 2, 22);
+  if (deadline - (new Date()) < 0) return;
+
+  var styleStr = [
+    'margin: 1em 0',
+    'padding: 1em',
+    'background-color: #c4e0e1',
+    'border-radius: 5px',
+    'font-size: 90%',
+    // 'font-size: 75%',
+    // 'width: 210px',
+    'color: #333333'
+  ].join(';');
+
+  var text = '【课程学习】' +
+    '拿不到 Offer 退全款，廖雪峰的' +
+    '<span style="color: #4682BE;">《Web 全栈架构师》</span>开班了！';
+
+  var banner = $('<a href="https://datayi.cn/w/noqwyzdR" style="color: #333333;" target="_blank"><div style="' + styleStr + '">' + text + '</div></a>')
+    .insertAfter(element);
+}
+
 function create_page_anchors() {
   // create page anchors by matching li's to headers
   // if there is a match, create click listeners
@@ -243,6 +269,9 @@ function create_page_anchors() {
         .insertAfter('#content h1')
         .addClass('content-toc')
         .attr('id', 'content-toc');
+
+      create_banner(ul_tag);
+
       for (var j = 0; j < headers.length; j++) {
         var li_tag = $('<li></li>').html('<a href="#' + location.hash.split('#')[1] + '#' + headers[j] + '">' + headers[j] + '</a>');
         ul_tag.append(li_tag);
@@ -287,6 +316,14 @@ function show_loading() {
   return loading;
 }
 
+function statistics() {
+  var _hmt = _hmt || [];
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?519d72adb78a0bf66de7bae18e994322";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+}
+
 function router() { 
   var path = location.hash.replace(/#([^#]*)(#.*)?/, './$1');
 
@@ -318,6 +355,9 @@ function router() {
 
   // otherwise get the markdown and render it
   var loading = show_loading();
+
+  statistics();
+
   $.get(path, function(data) {
     $(ditto.error_id).hide();
     $(ditto.content_id).html(marked(data) + disqusCode);
