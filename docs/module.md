@@ -10,7 +10,7 @@ ES6 模块的设计思想是尽量的静态化，使得编译时就能确定模�
 
 ```javascript
 // CommonJS模块
-let { stat, exists, readFile } = require('fs');
+let { stat, exists, readfile } = require('fs');
 
 // 等同于
 let _fs = require('fs');
@@ -162,6 +162,8 @@ function f() {}
 export {f};
 ```
 
+目前，export 命令能够对外输出的就是三种接口：函数（Functions）， 类（Classes），var、let、const 声明的变量（Variables）。
+
 另外，`export`语句输出的接口，与其对应的值是动态绑定关系，即通过该接口，可以取到模块内部实时的值。
 
 ```javascript
@@ -223,10 +225,10 @@ a.foo = 'hello'; // 合法操作
 
 上面代码中，`a`的属性可以成功改写，并且其他模块也可以读到改写后的值。不过，这种写法很难查错，建议凡是输入的变量，都当作完全只读，不要轻易改变它的属性。
 
-`import`后面的`from`指定模块文件的位置，可以是相对路径，也可以是绝对路径，`.js`后缀可以省略。如果只是模块名，不带有路径，那么必须有配置文件，告诉 JavaScript 引擎该模块的位置。
+`import`后面的`from`指定模块文件的位置，可以是相对路径，也可以是绝对路径。如果不带有路径，只是一个模块名，那么必须有配置文件，告诉 JavaScript 引擎该模块的位置。
 
 ```javascript
-import {myMethod} from 'util';
+import { myMethod } from 'util';
 ```
 
 上面代码中，`util`是模块文件名，由于不带有路径，必须通过配置，告诉引擎怎么取到这个模块。
@@ -286,7 +288,7 @@ import { bar } from 'my_module';
 import { foo, bar } from 'my_module';
 ```
 
-上面代码中，虽然`foo`和`bar`在两个语句中加载，但是它们对应的是同一个`my_module`实例。也就是说，`import`语句是 Singleton 模式。
+上面代码中，虽然`foo`和`bar`在两个语句中加载，但是它们对应的是同一个`my_module`模块。也就是说，`import`语句是 Singleton 模式。
 
 目前阶段，通过 Babel 转码，CommonJS 模块的`require`命令和 ES6 模块的`import`命令，可以写在同一个模块里面，但是最好不要这样做。因为`import`在静态解析阶段执行，所以它是一个模块之中最早执行的。下面的代码可能不会得到预期结果。
 
@@ -540,25 +542,56 @@ export default es6;
 export { default as es6 } from './someModule';
 ```
 
-下面三种`import`语句，没有对应的复合写法。
+ES2020 之前，有一种`import`语句，没有对应的复合写法。
 
 ```javascript
 import * as someIdentifier from "someModule";
-import someIdentifier from "someModule";
-import someIdentifier, { namedIdentifier } from "someModule";
 ```
 
-为了做到形式的对称，现在有[提案](https://github.com/leebyron/ecmascript-export-default-from)，提出补上这三种复合写法。
+[ES2020](https://github.com/tc39/proposal-export-ns-from)补上了这个写法。
 
 ```javascript
-export * as someIdentifier from "someModule";
-export someIdentifier from "someModule";
-export someIdentifier, { namedIdentifier } from "someModule";
+export * as ns from "mod";
+
+// 等同于
+import * as ns from "mod";
+export {ns};
+```
+
+## import 属性
+
+ES2025 引入了“[import 属性](https://github.com/tc39/proposal-import-attributes)”（import attributes），允许为 import 命令设置属性，主要用于导入非模块的代码，比如 JSON 数据、WebAssembly 代码、CSS 代码。
+
+目前，只支持导入 JSON 数据。
+
+```javascript
+// 静态导入
+import configData from './config-data.json' with { type: 'json' };
+
+// 动态导入
+const configData = await import(
+  './config-data.json', { with: { type: 'json' } }
+);
+```
+
+上面代码中，import 命令使用 with 子句，指定一个属性对象。这个属性对象目前只有一个 type 属性，它的值就是导入代码的类型，现在只能设置为`json`一个值。
+
+如果没有 import 属性，导入 JSON 数据只能使用 fetch 命令。
+
+```javascript
+const response = await fetch('./config.json');
+const json = await response.json();
+```
+
+export 命令与 import 命令写在一起，形成一个再导出语句时，也可以使用 import 属性。
+
+```javascript
+export { default as config } from './config-data.json' with { type: 'json' };
 ```
 
 ## 模块的继承
 
-模块之间也可以继承。
+模块可以继承。
 
 假设有一个`circleplus`模块，继承了`circle`模块。
 
@@ -692,7 +725,28 @@ import(`./section-modules/${someVariable}.js`)
   });
 ```
 
-`import()`函数可以用在任何地方，不仅仅是模块，非模块的脚本也可以使用。它是运行时执行，也就是说，什么时候运行到这一句，就会加载指定的模块。另外，`import()`函数与所加载的模块没有静态连接关系，这点也是与`import`语句不相同。`import()`类似于 Node 的`require`方法，区别主要是前者是异步加载，后者是同步加载。
+`import()`函数可以用在任何地方，不仅仅是模块，非模块的脚本也可以使用。它是运行时执行，也就是说，什么时候运行到这一句，就会加载指定的模块。另外，`import()`函数与所加载的模块没有静态连接关系，这点也是与`import`语句不相同。`import()`类似于 Node.js 的`require()`方法，区别主要是前者是异步加载，后者是同步加载。
+
+由于`import()`返回 Promise
+对象，所以需要使用`then()`方法指定处理函数。考虑到代码的清晰，更推荐使用`await`命令。
+
+```javascript
+async function renderWidget() {
+  const container = document.getElementById('widget');
+  if (container !== null) {
+    // 等同于
+    // import("./widget").then(widget => {
+    //   widget.render(container);
+    // });
+    const widget = await import('./widget.js');
+    widget.render(container);
+  }
+}
+
+renderWidget();
+```
+
+上面示例中，`await`命令后面就是使用`import()`，对比`then()`的写法明显更简洁易读。
 
 ### 适用场合
 
@@ -800,4 +854,46 @@ async function main() {
 }
 main();
 ```
+
+## import.meta
+
+开发者使用一个模块时，有时需要知道模板本身的一些信息（比如模块的路径）。[ES2020](https://github.com/tc39/proposal-import-meta) 为 import 命令添加了一个元属性`import.meta`，返回当前模块的元信息。
+
+`import.meta`只能在模块内部使用，如果在模块外部使用会报错。
+
+这个属性返回一个对象，该对象的各种属性就是当前运行的脚本的元信息。具体包含哪些属性，标准没有规定，由各个运行环境自行决定。一般来说，`import.meta`至少会有下面两个属性。
+
+**（1）import.meta.url**
+
+`import.meta.url`返回当前模块的 URL 路径。举例来说，当前模块主文件的路径是`https://foo.com/main.js`，`import.meta.url`就返回这个路径。如果模块里面还有一个数据文件`data.txt`，那么就可以用下面的代码，获取这个数据文件的路径。
+
+```javascript
+new URL('data.txt', import.meta.url)
+```
+
+注意，Node.js 环境中，`import.meta.url`返回的总是本地路径，即`file:URL`协议的字符串，比如`file:///home/user/foo.js`。
+
+**（2）import.meta.scriptElement**
+
+`import.meta.scriptElement`是浏览器特有的元属性，返回加载模块的那个`<script>`元素，相当于`document.currentScript`属性。
+
+```javascript
+// HTML 代码为
+// <script type="module" src="my-module.js" data-foo="abc"></script>
+
+// my-module.js 内部执行下面的代码
+import.meta.scriptElement.dataset.foo
+// "abc"
+```
+
+**（3）其他**
+
+Deno 现在还支持`import.meta.filename`和`import.meta.dirname`属性，对应 CommonJS 模块系统的`__filename`和`__dirname`属性。
+
+- `import.meta.filename`：当前模块文件的绝对路径。
+- `import.meta.dirname`：当前模块文件的目录的绝对路径。
+
+这两个属性都提供当前平台的正确的路径分隔符，比如 Linux 系统返回`/dev/my_module.ts`，Windows 系统返回`C:\dev\my_module.ts`。
+
+本地模块可以使用这两个属性，远程模块也可以使用。
 

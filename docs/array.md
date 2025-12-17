@@ -73,9 +73,9 @@ console.log(...[1, 2])
 
 上面三种情况，扩展运算符都放在圆括号里面，但是前两种情况会报错，因为扩展运算符所在的括号不是函数调用。
 
-### 替代函数的 apply 方法
+### 替代函数的 apply() 方法
 
-由于扩展运算符可以展开数组，所以不再需要`apply`方法，将数组转为函数的参数了。
+由于扩展运算符可以展开数组，所以不再需要`apply()`方法将数组转为函数的参数了。
 
 ```javascript
 // ES5 的写法
@@ -85,7 +85,7 @@ function f(x, y, z) {
 var args = [0, 1, 2];
 f.apply(null, args);
 
-// ES6的写法
+// ES6 的写法
 function f(x, y, z) {
   // ...
 }
@@ -93,7 +93,7 @@ let args = [0, 1, 2];
 f(...args);
 ```
 
-下面是扩展运算符取代`apply`方法的一个实际的例子，应用`Math.max`方法，简化求出一个数组最大元素的写法。
+下面是扩展运算符取代`apply()`方法的一个实际的例子，应用`Math.max()`方法，简化求出一个数组最大元素的写法。
 
 ```javascript
 // ES5 的写法
@@ -106,12 +106,12 @@ Math.max(...[14, 3, 77])
 Math.max(14, 3, 77);
 ```
 
-上面代码中，由于 JavaScript 不提供求数组最大元素的函数，所以只能套用`Math.max`函数，将数组转为一个参数序列，然后求最大值。有了扩展运算符以后，就可以直接用`Math.max`了。
+上面代码中，由于 JavaScript 不提供求数组最大元素的函数，所以只能套用`Math.max()`函数，将数组转为一个参数序列，然后求最大值。有了扩展运算符以后，就可以直接用`Math.max()`了。
 
-另一个例子是通过`push`函数，将一个数组添加到另一个数组的尾部。
+另一个例子是通过`push()`函数，将一个数组添加到另一个数组的尾部。
 
 ```javascript
-// ES5的 写法
+// ES5 的写法
 var arr1 = [0, 1, 2];
 var arr2 = [3, 4, 5];
 Array.prototype.push.apply(arr1, arr2);
@@ -122,13 +122,14 @@ let arr2 = [3, 4, 5];
 arr1.push(...arr2);
 ```
 
-上面代码的 ES5 写法中，`push`方法的参数不能是数组，所以只好通过`apply`方法变通使用`push`方法。有了扩展运算符，就可以直接将数组传入`push`方法。
+上面代码的 ES5 写法中，`push()`方法的参数不能是数组，所以只好通过`apply()`方法变通使用`push()`方法。有了扩展运算符，就可以直接将数组传入`push()`方法。
 
 下面是另外一个例子。
 
 ```javascript
 // ES5
 new (Date.bind.apply(Date, [null, 2015, 1, 1]))
+
 // ES6
 new Date(...[2015, 1, 1]);
 ```
@@ -213,6 +214,7 @@ a4[0] === a1[0] // true
 ```javascript
 // ES5
 a = list[0], rest = list.slice(1)
+
 // ES6
 [a, ...rest] = list
 ```
@@ -281,7 +283,7 @@ str.split('').reverse().join('')
 // 'y\uD83D\uDE80x'
 ```
 
-上面代码中，如果不用扩展运算符，字符串的`reverse`操作就不正确。
+上面代码中，如果不用扩展运算符，字符串的`reverse()`操作就不正确。
 
 **（5）实现了 Iterator 接口的对象**
 
@@ -292,7 +294,7 @@ let nodeList = document.querySelectorAll('div');
 let array = [...nodeList];
 ```
 
-上面代码中，`querySelectorAll`方法返回的是一个`NodeList`对象。它不是数组，而是一个类似数组的对象。这时，扩展运算符可以将其转为真正的数组，原因就在于`NodeList`对象实现了 Iterator 。
+上面代码中，`querySelectorAll()`方法返回的是一个`NodeList`对象。它不是数组，而是一个类似数组的对象。这时，扩展运算符可以将其转为真正的数组，原因就在于`NodeList`对象实现了 Iterator。
 
 ```javascript
 Number.prototype[Symbol.iterator] = function*() {
@@ -361,9 +363,9 @@ let arr = [...obj]; // TypeError: Cannot spread non-iterable object
 
 ## Array.from()
 
-`Array.from`方法用于将两类对象转为真正的数组：类似数组的对象（array-like object）和可遍历（iterable）的对象（包括 ES6 新增的数据结构 Set 和 Map）。
+`Array.from()`方法用于将两类对象转为真正的数组：类似数组的对象（array-like object）和可遍历（iterable）的对象（包括 ES6 新增的数据结构 Set 和 Map）。
 
-下面是一个类似数组的对象，`Array.from`将它转为真正的数组。
+下面是一个类似数组的对象，`Array.from()`将它转为真正的数组。
 
 ```javascript
 let arrayLike = {
@@ -373,32 +375,32 @@ let arrayLike = {
     length: 3
 };
 
-// ES5的写法
+// ES5 的写法
 var arr1 = [].slice.call(arrayLike); // ['a', 'b', 'c']
 
-// ES6的写法
+// ES6 的写法
 let arr2 = Array.from(arrayLike); // ['a', 'b', 'c']
 ```
 
-实际应用中，常见的类似数组的对象是 DOM 操作返回的 NodeList 集合，以及函数内部的`arguments`对象。`Array.from`都可以将它们转为真正的数组。
+实际应用中，常见的类似数组的对象是 DOM 操作返回的 NodeList 集合，以及函数内部的`arguments`对象。`Array.from()`都可以将它们转为真正的数组。
 
 ```javascript
-// NodeList对象
+// NodeList 对象
 let ps = document.querySelectorAll('p');
 Array.from(ps).filter(p => {
   return p.textContent.length > 100;
 });
 
-// arguments对象
+// arguments 对象
 function foo() {
   var args = Array.from(arguments);
   // ...
 }
 ```
 
-上面代码中，`querySelectorAll`方法返回的是一个类似数组的对象，可以将这个对象转为真正的数组，再使用`filter`方法。
+上面代码中，`querySelectorAll()`方法返回的是一个类似数组的对象，可以将这个对象转为真正的数组，再使用`filter()`方法。
 
-只要是部署了 Iterator 接口的数据结构，`Array.from`都能将其转为数组。
+只要是部署了 Iterator 接口的数据结构，`Array.from()`都能将其转为数组。
 
 ```javascript
 Array.from('hello')
@@ -408,9 +410,9 @@ let namesSet = new Set(['a', 'b'])
 Array.from(namesSet) // ['a', 'b']
 ```
 
-上面代码中，字符串和 Set 结构都具有 Iterator 接口，因此可以被`Array.from`转为真正的数组。
+上面代码中，字符串和 Set 结构都具有 Iterator 接口，因此可以被`Array.from()`转为真正的数组。
 
-如果参数是一个真正的数组，`Array.from`会返回一个一模一样的新数组。
+如果参数是一个真正的数组，`Array.from()`会返回一个一模一样的新数组。
 
 ```javascript
 Array.from([1, 2, 3])
@@ -429,16 +431,16 @@ function foo() {
 [...document.querySelectorAll('div')]
 ```
 
-扩展运算符背后调用的是遍历器接口（`Symbol.iterator`），如果一个对象没有部署这个接口，就无法转换。`Array.from`方法还支持类似数组的对象。所谓类似数组的对象，本质特征只有一点，即必须有`length`属性。因此，任何有`length`属性的对象，都可以通过`Array.from`方法转为数组，而此时扩展运算符就无法转换。
+扩展运算符背后调用的是遍历器接口（`Symbol.iterator`），如果一个对象没有部署这个接口，就无法转换。`Array.from()`方法还支持类似数组的对象。所谓类似数组的对象，本质特征只有一点，即必须有`length`属性。因此，任何有`length`属性的对象，都可以通过`Array.from()`方法转为数组，而此时扩展运算符就无法转换。
 
 ```javascript
 Array.from({ length: 3 });
 // [ undefined, undefined, undefined ]
 ```
 
-上面代码中，`Array.from`返回了一个具有三个成员的数组，每个位置的值都是`undefined`。扩展运算符转换不了这个对象。
+上面代码中，`Array.from()`返回了一个具有三个成员的数组，每个位置的值都是`undefined`。扩展运算符转换不了这个对象。
 
-对于还没有部署该方法的浏览器，可以用`Array.prototype.slice`方法替代。
+对于还没有部署该方法的浏览器，可以用`Array.prototype.slice()`方法替代。
 
 ```javascript
 const toArray = (() =>
@@ -446,7 +448,7 @@ const toArray = (() =>
 )();
 ```
 
-`Array.from`还可以接受第二个参数，作用类似于数组的`map`方法，用来对每个元素进行处理，将处理后的值放入返回的数组。
+`Array.from()`还可以接受一个函数作为第二个参数，作用类似于数组的`map()`方法，用来对每个元素进行处理，将处理后的值放入返回的数组。
 
 ```javascript
 Array.from(arrayLike, x => x * x);
@@ -486,7 +488,7 @@ typesOf(null, [], NaN)
 // ['object', 'object', 'number']
 ```
 
-如果`map`函数里面用到了`this`关键字，还可以传入`Array.from`的第三个参数，用来绑定`this`。
+如果`map()`函数里面用到了`this`关键字，还可以传入`Array.from()`的第三个参数，用来绑定`this`。
 
 `Array.from()`可以将各种值转为真正的数组，并且还提供`map`功能。这实际上意味着，只要有一个原始的数据结构，你就可以先对它的值进行处理，然后转成规范的数组结构，进而就可以使用数量众多的数组方法。
 
@@ -495,7 +497,7 @@ Array.from({ length: 2 }, () => 'jack')
 // ['jack', 'jack']
 ```
 
-上面代码中，`Array.from`的第一个参数指定了第二个参数运行的次数。这种特性可以让该方法的用法变得非常灵活。
+上面代码中，`Array.from()`的第一个参数指定了第二个参数运行的次数。这种特性可以让该方法的用法变得非常灵活。
 
 `Array.from()`的另一个应用是，将字符串转为数组，然后返回字符串的长度。因为它能正确处理各种 Unicode 字符，可以避免 JavaScript 将大于`\uFFFF`的 Unicode 字符，算作两个字符的 bug。
 
@@ -507,7 +509,7 @@ function countSymbols(string) {
 
 ## Array.of()
 
-`Array.of`方法用于将一组值，转换为数组。
+`Array.of()`方法用于将一组值，转换为数组。
 
 ```javascript
 Array.of(3, 11, 8) // [3,11,8]
@@ -523,9 +525,9 @@ Array(3) // [, , ,]
 Array(3, 11, 8) // [3, 11, 8]
 ```
 
-上面代码中，`Array`方法没有参数、一个参数、三个参数时，返回结果都不一样。只有当参数个数不少于 2 个时，`Array()`才会返回由参数组成的新数组。参数个数只有一个时，实际上是指定数组的长度。
+上面代码中，`Array()`方法没有参数、一个参数、三个参数时，返回的结果都不一样。只有当参数个数不少于 2 个时，`Array()`才会返回由参数组成的新数组。参数只有一个正整数时，实际上是指定数组的长度。
 
-`Array.of`基本上可以用来替代`Array()`或`new Array()`，并且不存在由于参数不同而导致的重载。它的行为非常统一。
+`Array.of()`基本上可以用来替代`Array()`或`new Array()`，并且不存在由于参数不同而导致的重载。它的行为非常统一。
 
 ```javascript
 Array.of() // []
@@ -534,9 +536,9 @@ Array.of(1) // [1]
 Array.of(1, 2) // [1, 2]
 ```
 
-`Array.of`总是返回参数值组成的数组。如果没有参数，就返回一个空数组。
+`Array.of()`总是返回参数值组成的数组。如果没有参数，就返回一个空数组。
 
-`Array.of`方法可以用下面的代码模拟实现。
+`Array.of()`方法可以用下面的代码模拟实现。
 
 ```javascript
 function ArrayOf(){
@@ -544,7 +546,7 @@ function ArrayOf(){
 }
 ```
 
-## 数组实例的 copyWithin()
+## 实例方法：copyWithin()
 
 数组实例的`copyWithin()`方法，在当前数组内部，将指定位置的成员复制到其他位置（会覆盖原有成员），然后返回当前数组。也就是说，使用这个方法，会修改当前数组。
 
@@ -593,9 +595,9 @@ i32a.copyWithin(0, 2);
 // Int32Array [4, 2, 3, 4, 5]
 ```
 
-## 数组实例的 find() 和 findIndex()
+## 实例方法：find()，findIndex()，findLast()，findLastIndex()
 
-数组实例的`find`方法，用于找出第一个符合条件的数组成员。它的参数是一个回调函数，所有数组成员依次执行该回调函数，直到找出第一个返回值为`true`的成员，然后返回该成员。如果没有符合条件的成员，则返回`undefined`。
+数组实例的`find()`方法，用于找出第一个符合条件的数组成员。它的参数是一个回调函数，所有数组成员依次执行该回调函数，直到找出第一个返回值为`true`的成员，然后返回该成员。如果没有符合条件的成员，则返回`undefined`。
 
 ```javascript
 [1, 4, -5, 10].find((n) => n < 0)
@@ -610,9 +612,9 @@ i32a.copyWithin(0, 2);
 }) // 10
 ```
 
-上面代码中，`find`方法的回调函数可以接受三个参数，依次为当前的值、当前的位置和原数组。
+上面代码中，`find()`方法的回调函数可以接受三个参数，依次为当前的值、当前的位置和原数组。
 
-数组实例的`findIndex`方法的用法与`find`方法非常类似，返回第一个符合条件的数组成员的位置，如果所有成员都不符合条件，则返回`-1`。
+数组实例的`findIndex()`方法的用法与`find()`方法非常类似，返回第一个符合条件的数组成员的位置，如果所有成员都不符合条件，则返回`-1`。
 
 ```javascript
 [1, 5, 10, 15].findIndex(function(value, index, arr) {
@@ -630,9 +632,9 @@ let person = {name: 'John', age: 20};
 [10, 12, 26, 15].find(f, person);    // 26
 ```
 
-上面的代码中，`find`函数接收了第二个参数`person`对象，回调函数中的`this`对象指向`person`对象。
+上面的代码中，`find()`函数接收了第二个参数`person`对象，回调函数中的`this`对象指向`person`对象。
 
-另外，这两个方法都可以发现`NaN`，弥补了数组的`indexOf`方法的不足。
+另外，这两个方法都可以发现`NaN`，弥补了数组的`indexOf()`方法的不足。
 
 ```javascript
 [NaN].indexOf(NaN)
@@ -642,9 +644,25 @@ let person = {name: 'John', age: 20};
 // 0
 ```
 
-上面代码中，`indexOf`方法无法识别数组的`NaN`成员，但是`findIndex`方法可以借助`Object.is`方法做到。
+上面代码中，`indexOf()`方法无法识别数组的`NaN`成员，但是`findIndex()`方法可以借助`Object.is()`方法做到。
 
-## 数组实例的 fill()
+`find()`和`findIndex()`都是从数组的0号位，依次向后检查。[ES2022](https://github.com/tc39/proposal-array-find-from-last) 新增了两个方法`findLast()`和`findLastIndex()`，从数组的最后一个成员开始，依次向前检查，其他都保持不变。
+
+```javascript
+const array = [
+  { value: 1 },
+  { value: 2 },
+  { value: 3 },
+  { value: 4 }
+];
+
+array.findLast(n => n.value % 2 === 1); // { value: 3 }
+array.findLastIndex(n => n.value % 2 === 1); // 2
+```
+
+上面示例中，`findLast()`和`findLastIndex()`从数组结尾开始，寻找第一个`value`属性为奇数的成员。结果，该成员是`{ value: 3 }`，位置是2号位。
+
+## 实例方法：fill()
 
 `fill`方法使用给定值，填充一个数组。
 
@@ -681,7 +699,7 @@ arr
 // [[5], [5], [5]]
 ```
 
-## 数组实例的 entries()，keys() 和 values()
+## 实例方法：entries()，keys() 和 values()
 
 ES6 提供三个新的方法——`entries()`，`keys()`和`values()`——用于遍历数组。它们都返回一个遍历器对象（详见《Iterator》一章），可以用`for...of`循环进行遍历，唯一的区别是`keys()`是对键名的遍历、`values()`是对键值的遍历，`entries()`是对键值对的遍历。
 
@@ -715,7 +733,7 @@ console.log(entries.next().value); // [1, 'b']
 console.log(entries.next().value); // [2, 'c']
 ```
 
-## 数组实例的 includes()
+## 实例方法：includes()
 
 `Array.prototype.includes`方法返回一个布尔值，表示某个数组是否包含给定的值，与字符串的`includes`方法类似。ES2016 引入了该方法。
 
@@ -770,7 +788,7 @@ contains(['foo', 'bar'], 'baz'); // => false
 - Map 结构的`has`方法，是用来查找键名的，比如`Map.prototype.has(key)`、`WeakMap.prototype.has(key)`、`Reflect.has(target, propertyKey)`。
 - Set 结构的`has`方法，是用来查找值的，比如`Set.prototype.has(value)`、`WeakSet.prototype.has(value)`。
 
-## 数组实例的 flat()，flatMap()
+## 实例方法：flat()，flatMap()
 
 数组的成员有时还是数组，`Array.prototype.flat()`用于将嵌套的数组“拉平”，变成一维的数组。该方法返回一个新数组，对原数据没有影响。
 
@@ -835,9 +853,120 @@ arr.flatMap(function callback(currentValue[, index[, array]]) {
 
 `flatMap()`方法还可以有第二个参数，用来绑定遍历函数里面的`this`。
 
+## 实例方法：at()
+
+长久以来，JavaScript 不支持数组的负索引，如果要引用数组的最后一个成员，不能写成`arr[-1]`，只能使用`arr[arr.length - 1]`。
+
+这是因为方括号运算符`[]`在 JavaScript 语言里面，不仅用于数组，还用于对象。对于对象来说，方括号里面就是键名，比如`obj[1]`引用的是键名为字符串`1`的键，同理`obj[-1]`引用的是键名为字符串`-1`的键。由于 JavaScript 的数组是特殊的对象，所以方括号里面的负数无法再有其他语义了，也就是说，不可能添加新语法来支持负索引。
+
+为了解决这个问题，[ES2022](https://github.com/tc39/proposal-relative-indexing-method/) 为数组实例增加了`at()`方法，接受一个整数作为参数，返回对应位置的成员，并支持负索引。这个方法不仅可用于数组，也可用于字符串和类型数组（TypedArray）。
+
+```javascript
+const arr = [5, 12, 8, 130, 44];
+arr.at(2) // 8
+arr.at(-2) // 130
+```
+
+如果参数位置超出了数组范围，`at()`返回`undefined`。
+
+```javascript
+const sentence = 'This is a sample sentence';
+
+sentence.at(0); // 'T'
+sentence.at(-1); // 'e'
+
+sentence.at(-100) // undefined
+sentence.at(100) // undefined
+```
+
+## 实例方法：toReversed()，toSorted()，toSpliced()，with()
+
+很多数组的传统方法会改变原数组，比如`push()`、`pop()`、`shift()`、`unshift()`等等。数组只要调用了这些方法，它的值就变了。[ES2023](https://github.com/tc39/proposal-change-array-by-copy)引入了四个新方法，对数组进行操作时，不改变原数组，而返回一个原数组的拷贝。
+
+- `Array.prototype.toReversed() -> Array`
+- `Array.prototype.toSorted(compareFn) -> Array`
+- `Array.prototype.toSpliced(start, deleteCount, ...items) -> Array`
+- `Array.prototype.with(index, value) -> Array`
+
+它们分别对应数组的原有方法。
+
+- `toReversed()`对应`reverse()`，用来颠倒数组成员的位置。
+- `toSorted()`对应`sort()`，用来对数组成员排序。
+- `toSpliced()`对应`splice()`，用来在指定位置，删除指定数量的成员，并插入新成员。
+- `with(index, value)`对应`splice(index, 1, value)`，用来将指定位置的成员替换为新的值。
+
+上面是这四个新方法对应的原有方法，含义和用法完全一样，唯一不同的是不会改变原数组，而是返回原数组操作后的拷贝。
+
+下面是示例。
+
+```javascript
+const sequence = [1, 2, 3];
+sequence.toReversed() // [3, 2, 1]
+sequence // [1, 2, 3]
+
+const outOfOrder = [3, 1, 2];
+outOfOrder.toSorted() // [1, 2, 3]
+outOfOrder // [3, 1, 2]
+
+const array = [1, 2, 3, 4];
+array.toSpliced(1, 2, 5, 6, 7) // [1, 5, 6, 7, 4]
+array // [1, 2, 3, 4]
+
+const correctionNeeded = [1, 1, 3];
+correctionNeeded.with(1, 2) // [1, 2, 3]
+correctionNeeded // [1, 1, 3]
+```
+
+## 实例方法：group()，groupToMap()
+
+数组成员分组是一个常见需求，比如 SQL 有`GROUP BY`子句和函数式编程有 MapReduce 方法。现在有一个[提案](https://github.com/tc39/proposal-array-grouping)，为 JavaScript 新增了数组实例方法`group()`和`groupToMap()`，它们可以根据分组函数的运行结果，将数组成员分组。
+
+`group()`的参数是一个分组函数，原数组的每个成员都会依次执行这个函数，确定自己是哪一个组。
+
+```javascript
+const array = [1, 2, 3, 4, 5];
+
+array.group((num, index, array) => {
+  return num % 2 === 0 ? 'even': 'odd';
+});
+// { odd: [1, 3, 5], even: [2, 4] }
+```
+
+`group()`的分组函数可以接受三个参数，依次是数组的当前成员、该成员的位置序号、原数组（上例是`num`、`index`和`array`）。分组函数的返回值应该是字符串（或者可以自动转为字符串），以作为分组后的组名。
+
+`group()`的返回值是一个对象，该对象的键名就是每一组的组名，即分组函数返回的每一个字符串（上例是`even`和`odd`）；该对象的键值是一个数组，包括所有产生当前键名的原数组成员。
+
+下面是另一个例子。
+
+```javascript
+[6.1, 4.2, 6.3].group(Math.floor)
+// { '4': [4.2], '6': [6.1, 6.3] }
+```
+
+上面示例中，`Math.floor`作为分组函数，对原数组进行分组。它的返回值原本是数值，这时会自动转为字符串，作为分组的组名。原数组的成员根据分组函数的运行结果，进入对应的组。
+
+`group()`还可以接受一个对象，作为第二个参数。该对象会绑定分组函数（第一个参数）里面的`this`，不过如果分组函数是一个箭头函数，该对象无效，因为箭头函数内部的`this`是固化的。
+
+`groupToMap()`的作用和用法与`group()`完全一致，唯一的区别是返回值是一个 Map 结构，而不是对象。Map 结构的键名可以是各种值，所以不管分组函数返回什么值，都会直接作为组名（Map 结构的键名），不会强制转为字符串。这对于分组函数返回值是对象的情况，尤其有用。
+
+```javascript
+const array = [1, 2, 3, 4, 5];
+
+const odd  = { odd: true };
+const even = { even: true };
+array.groupToMap((num, index, array) => {
+  return num % 2 === 0 ? even: odd;
+});
+//  Map { {odd: true}: [1, 3, 5], {even: true}: [2, 4] }
+```
+
+上面示例返回的是一个 Map 结构，它的键名就是分组函数返回的两个对象`odd`和`even`。
+
+总之，按照字符串分组就使用`group()`，按照对象分组就使用`groupToMap()`。
+
 ## 数组的空位
 
-数组的空位指，数组的某一个位置没有任何值。比如，`Array`构造函数返回的数组都是空位。
+数组的空位指的是，数组的某一个位置没有任何值，比如`Array()`构造函数返回的数组都是空位。
 
 ```javascript
 Array(3) // [, , ,]
@@ -845,7 +974,7 @@ Array(3) // [, , ,]
 
 上面代码中，`Array(3)`返回一个具有 3 个空位的数组。
 
-注意，空位不是`undefined`，一个位置的值等于`undefined`，依然是有值的。空位是没有任何值，`in`运算符可以说明这一点。
+注意，空位不是`undefined`，某一个位置的值等于`undefined`，依然是有值的。空位是没有任何值，`in`运算符可以说明这一点。
 
 ```javascript
 0 in [undefined, undefined, undefined] // true
@@ -888,7 +1017,7 @@ ES5 对空位的处理，已经很不一致了，大多数情况下会忽略空�
 
 ES6 则是明确将空位转为`undefined`。
 
-`Array.from`方法会将数组的空位，转为`undefined`，也就是说，这个方法不会忽略空位。
+`Array.from()`方法会将数组的空位，转为`undefined`，也就是说，这个方法不会忽略空位。
 
 ```javascript
 Array.from(['a',,'b'])
@@ -925,7 +1054,7 @@ for (let i of arr) {
 // 1
 ```
 
-上面代码中，数组`arr`有两个空位，`for...of`并没有忽略它们。如果改成`map`方法遍历，空位是会跳过的。
+上面代码中，数组`arr`有两个空位，`for...of`并没有忽略它们。如果改成`map()`方法遍历，空位是会跳过的。
 
 `entries()`、`keys()`、`values()`、`find()`和`findIndex()`会将空位处理成`undefined`。
 
@@ -986,4 +1115,3 @@ arr.sort(unstableSorting)
 常见的排序算法之中，插入排序、合并排序、冒泡排序等都是稳定的，堆排序、快速排序等是不稳定的。不稳定排序的主要缺点是，多重排序时可能会产生问题。假设有一个姓和名的列表，要求按照“姓氏为主要关键字，名字为次要关键字”进行排序。开发者可能会先按名字排序，再按姓氏进行排序。如果排序算法是稳定的，这样就可以达到“先姓氏，后名字”的排序效果。如果是不稳定的，就不行。
 
 早先的 ECMAScript 没有规定，`Array.prototype.sort()`的默认排序算法是否稳定，留给浏览器自己决定，这导致某些实现是不稳定的。[ES2019](https://github.com/tc39/ecma262/pull/1340) 明确规定，`Array.prototype.sort()`的默认排序算法必须稳定。这个规定已经做到了，现在 JavaScript 各个主要实现的默认排序算法都是稳定的。
-

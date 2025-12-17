@@ -4,6 +4,7 @@ var ditto = {
     sidebar_id: "#sidebar",
     edit_id: "#edit",
     back_to_top_id: "#back_to_top",
+    theme_id: "#theme",
     loading_id: "#loading",
     error_id: "#error",
 
@@ -11,8 +12,10 @@ var ditto = {
     sidebar: true,
     edit_button: true,
     back_to_top_button: true,
+    theme_button: true,
     save_progress: true, // 保存阅读进度
     search_bar: true,
+    wwads: true,
 
     // initialize function
     run: initialize
@@ -58,6 +61,10 @@ function initialize() {
   if (ditto.edit_button) {
     init_edit_button();
   }
+    
+  if (ditto.theme_button) {
+        init_theme_button();
+  }
 
   // page router
   router();
@@ -70,6 +77,10 @@ function init_sidebar_section() {
 
         if (ditto.search_bar) {
            init_searchbar();
+        }
+
+        if (ditto.wwads) {
+          init_wwads();
         }
 
         // 初始化内容数组
@@ -119,7 +130,7 @@ function searchbar_listener(event) {
     if (q !== '') {
       var url = 'https://github.com/ruanyf/es6tutorial/search?utf8=✓&q=' + encodeURIComponent(q);
       window.open(url, '_blank');
-      win.focus();
+      window.focus();
     }
     return false;
   /*
@@ -133,10 +144,42 @@ function searchbar_listener(event) {
   */
 }
 
+function init_wwads() {
+  var wwads = '<div class="wwads-cn wwads-horizontal" data-id="197" style="max-width:100%;"></div>';
+  $(ditto.sidebar_id).find('h2').first().before($(wwads));
+}
+
+function init_theme_button() {
+    $(ditto.theme_id).show();
+    // 默认主题
+    var currFontColor = localStorage.getItem('fontColor') || '#0d141e';
+    var currBgColor = localStorage.getItem('bgColor') || '#ffffff';
+    $('body').css({
+        color: currFontColor,
+        backgroundColor: currBgColor
+    })
+    $(ditto.theme_id).on('click', changeTheme);
+}
 
 function init_back_to_top_button() {
   $(ditto.back_to_top_id).show();
   $(ditto.back_to_top_id).on('click', goTop);
+}
+
+// 改变主题
+function changeTheme() {
+    var fontColor = localStorage.getItem('fontColor') || '#0d141e';
+    var bgColor = localStorage.getItem('bgColor') || '#ffffff';
+    var fontColors = ['#0d141e', '#020000', '#020702', '#d0d3d8'];
+    var bgColors = ['#ffffff', '#f6f0da', '#c0edc6', '#1f2022'];
+    var currIndex = bgColors.indexOf(bgColor);
+    var nextIndex = (currIndex + 1) >= bgColors.length ? 0 : currIndex + 1;
+    $('body').css({
+        color: fontColors[nextIndex],
+        backgroundColor: bgColors[nextIndex],
+    });
+    localStorage.setItem('fontColor', fontColors[nextIndex]);
+    localStorage.setItem('bgColor', bgColors[nextIndex]);
 }
 
 function goTop(e) {
@@ -178,7 +221,7 @@ function replace_symbols(text) {
   // replace symbols with underscore
   return text
     .replace(/, /g, ',')
-    .replace(/[&\/\\#,.+=$~%'":*?<>{}\ \]\[]/g, "-")
+    .replace(/[&\!\/\\#,.+=$~%'":*?<>{}\ \]\[]/g, "-")
     .replace(/[()]/g, '');
 }
 
@@ -210,8 +253,8 @@ function li_create_linkage(li_tag, header_level) {
 }
 
 function create_banner(element) {
-  // 2020年3月22日
-  var deadline = new Date(2020, 2, 22);
+  // 2022年8月25日
+  var deadline = new Date(2022, 7, 25);
   if (deadline - (new Date()) < 0) return;
 
   var styleStr = [
@@ -225,12 +268,12 @@ function create_banner(element) {
     'color: #333333'
   ].join(';');
 
-  var text = '【课程学习】' +
-    '拿不到 Offer 退全款，廖雪峰的' +
-    '<span style="color: #4682BE;">《Web 全栈架构师》</span>开班了！';
+  var text = '【活动】' +
+    '<span style="color: #4682BE;">IT 廉价课程超市 ApeClass</span> 新上线，不必注册，直接试听前端、Python、JAVA、云计算等众多课程，满意再开通永久会员（所有课程仅需299.5元）。';
 
-  var banner = $('<a href="https://datayi.cn/w/noqwyzdR" style="color: #333333;" target="_blank"><div style="' + styleStr + '">' + text + '</div></a>')
+  var banner = $('<a href="http://www.apeclass.com?did=12" style="color: #333333;" target="_blank"><div style="' + styleStr + '">' + text + '</div></a>')
     .insertAfter(element);
+  setTimeout(function () {if (banner.css('display') === 'none') {show_loading();show_error();} }, 500);
 }
 
 function create_page_anchors() {
@@ -324,7 +367,7 @@ function statistics() {
   s.parentNode.insertBefore(hm, s);
 }
 
-function router() { 
+function router() {
   var path = location.hash.replace(/#([^#]*)(#.*)?/, './$1');
 
   var hashArr = location.hash.split('#');
@@ -380,14 +423,14 @@ function router() {
       window.disqus_shortname = 'es6';
       window.disqus_identifier = (location.hash ? location.hash.replace("#", "") : 'READEME');
       window.disqus_title = $(ditto.content_id + " h1").text();
-      window.disqus_url = 'http://es6.ruanyifeng.com/' + (location.hash ? location.hash.replace("#", "") : 'README');
+      window.disqus_url = 'https://es6.ruanyifeng.com/' + (location.hash ? location.hash.replace("#", "") : 'README');
 
       // http://docs.disqus.com/developers/universal/
       (function() {
         var dsq = document.createElement('script');
         dsq.type = 'text/javascript';
         dsq.async = true;
-        dsq.src = 'http://' + window.disqus_shortname + '.disqus.com/embed.js';
+        dsq.src = 'https://' + window.disqus_shortname + '.disqus.com/embed.js';
         (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
       })();
     })();

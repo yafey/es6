@@ -10,7 +10,7 @@
 
 本章介绍如何读懂 ECMAScript 6 的规格文件。
 
-ECMAScript 6 的规格，可以在 ECMA 国际标准组织的官方网站（[www.ecma-international.org/ecma-262/6.0/](http://www.ecma-international.org/ecma-262/6.0/)）免费下载和在线阅读。
+ECMAScript 6 的规格，可以在 ECMA 国际标准组织的官方网站（[www.ecma-international.org/ecma-262/6.0/](https://www.ecma-international.org/ecma-262/6.0/)）免费下载和在线阅读。
 
 这个规格文件相当庞大，一共有 26 章，A4 打印的话，足足有 545 页。它的特点就是规定得非常细致，每一个语法行为、每一个函数的实现都做了详尽的清晰的描述。基本上，编译器作者只要把每一步翻译成代码就可以了。这很大程度上，保证了所有 ES6 实现都有一致的行为。
 
@@ -70,12 +70,12 @@ F.[[Call]](V, argumentsList)
 
 抽象操作的运行流程，一般是下面这样。
 
-> 1. Let `resultCompletionRecord` be `AbstractOp()`.
-> 1. If `resultCompletionRecord` is an abrupt completion, return `resultCompletionRecord`.
-> 1. Let `result` be `resultCompletionRecord.[[Value]]`.
+> 1. Let `result` be `AbstractOp()`.
+> 1. If `result` is an abrupt completion, return `result`.
+> 1. Set `result` to `result.[[Value]]`.
 > 1. return `result`.
 
-上面的第一步是调用抽象操作`AbstractOp()`，得到`resultCompletionRecord`，这是一个 Completion Record。第二步，如果这个 Record 属于 abrupt completion，就将`resultCompletionRecord`返回给用户。如果此处没有返回，就表示运行结果正常，所得的值存放在`resultCompletionRecord.[[Value]]`属性。第三步，将这个值记为`result`。第四步，将`result`返回给用户。
+上面的第一步调用了抽象操作`AbstractOp()`，得到`result`，这是一个 Completion Record。第二步，如果`result`属于 abrupt completion，就直接返回。如果此处没有返回，表示`result`属于 normal completion。第三步，将`result`的值设置为`resultCompletionRecord.[[Value]]`。第四步，返回`result`。
 
 ES6 规格将这个标准流程，使用简写的方式表达。
 
@@ -111,7 +111,7 @@ ES6 规格将这个标准流程，使用简写的方式表达。
 0 == null
 ```
 
-如果你不确定答案，或者想知道语言内部怎么处理，就可以去查看规格，[7.2.12 小节](http://www.ecma-international.org/ecma-262/6.0/#sec-abstract-equality-comparison)是对相等运算符（`==`）的描述。
+如果你不确定答案，或者想知道语言内部怎么处理，就可以去查看规格，[7.2.12 小节](https://www.ecma-international.org/ecma-262/6.0/#sec-abstract-equality-comparison)是对相等运算符（`==`）的描述。
 
 规格对每一种语法行为的描述，都分成两部分：先是总体的行为描述，然后是实现的算法细节。相等运算符的总体描述，只有一句话。
 
@@ -154,7 +154,7 @@ ES6 规格将这个标准流程，使用简写的方式表达。
 > 1. 如果`Type(x)`是对象，`Type(y)`是字符串或数值或`Symbol`值，返回`ToPrimitive(x) == y`的结果。
 > 1. 返回`false`。
 
-由于`0`的类型是数值，`null`的类型是 Null（这是规格[4.3.13 小节](http://www.ecma-international.org/ecma-262/6.0/#sec-terms-and-definitions-null-type)的规定，是内部 Type 运算的结果，跟`typeof`运算符无关）。因此上面的前 11 步都得不到结果，要到第 12 步才能得到`false`。
+由于`0`的类型是数值，`null`的类型是 Null（这是规格[4.3.13 小节](https://www.ecma-international.org/ecma-262/6.0/#sec-terms-and-definitions-null-type)的规定，是内部 Type 运算的结果，跟`typeof`运算符无关）。因此上面的前 11 步都得不到结果，要到第 12 步才能得到`false`。
 
 ```javascript
 0 == null // false
@@ -199,7 +199,7 @@ a2.map(n => 1) // [, , ,]
 
 为什么`a1`与`a2`成员的行为不一致？数组的成员是`undefined`或空位，到底有什么不同？
 
-规格的[12.2.5 小节《数组的初始化》](http://www.ecma-international.org/ecma-262/6.0/#sec-array-initializer)给出了答案。
+规格的[12.2.5 小节《数组的初始化》](https://www.ecma-international.org/ecma-262/6.0/#sec-array-initializer)给出了答案。
 
 > “Array elements may be elided at the beginning, middle or end of the element list. Whenever a comma in the element list is not preceded by an AssignmentExpression (i.e., a comma at the beginning or after another comma), the missing array element contributes to the length of the Array and increases the index of subsequent elements. Elided array elements are not defined. If an element is elided at the end of an array, that element does not contribute to the length of the Array.”
 
@@ -215,7 +215,7 @@ a2.map(n => 1) // [, , ,]
 
 ## 数组的 map 方法
 
-规格的[22.1.3.15 小节](http://www.ecma-international.org/ecma-262/6.0/#sec-array.prototype.map)定义了数组的`map`方法。该小节先是总体描述`map`方法的行为，里面没有提到数组空位。
+规格的[22.1.3.15 小节](https://www.ecma-international.org/ecma-262/6.0/#sec-array.prototype.map)定义了数组的`map`方法。该小节先是总体描述`map`方法的行为，里面没有提到数组空位。
 
 后面的算法描述是这样的。
 

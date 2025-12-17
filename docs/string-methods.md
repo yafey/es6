@@ -329,3 +329,159 @@ s.trimEnd() // "  abc"
 
 `matchAll()`方法返回一个正则表达式在当前字符串的所有匹配，详见《正则的扩展》的一章。
 
+## 实例方法：replaceAll()
+
+历史上，字符串的实例方法`replace()`只能替换第一个匹配。
+
+```javascript
+'aabbcc'.replace('b', '_')
+// 'aa_bcc'
+```
+
+上面例子中，`replace()`只将第一个`b`替换成了下划线。
+
+如果要替换所有的匹配，不得不使用正则表达式的`g`修饰符。
+
+```javascript
+'aabbcc'.replace(/b/g, '_')
+// 'aa__cc'
+```
+
+正则表达式毕竟不是那么方便和直观，[ES2021](https://github.com/tc39/proposal-string-replaceall) 引入了`replaceAll()`方法，可以一次性替换所有匹配。
+
+```javascript
+'aabbcc'.replaceAll('b', '_')
+// 'aa__cc'
+```
+
+它的用法与`replace()`相同，返回一个新字符串，不会改变原字符串。
+
+```javascript
+String.prototype.replaceAll(searchValue, replacement)
+```
+
+上面代码中，`searchValue`是搜索模式，可以是一个字符串，也可以是一个全局的正则表达式（带有`g`修饰符）。
+
+如果`searchValue`是一个不带有`g`修饰符的正则表达式，`replaceAll()`会报错。这一点跟`replace()`不同。
+
+```javascript
+// 不报错
+'aabbcc'.replace(/b/, '_')
+
+// 报错
+'aabbcc'.replaceAll(/b/, '_')
+```
+
+上面例子中，`/b/`不带有`g`修饰符，会导致`replaceAll()`报错。
+
+`replaceAll()`的第二个参数`replacement`是一个字符串，表示替换的文本，其中可以使用一些特殊字符串。
+
+- `$&`：匹配的字符串。
+- `` $` ``：匹配结果前面的文本。
+- `$'`：匹配结果后面的文本。
+- `$n`：匹配成功的第`n`组内容，`n`是从1开始的自然数。这个参数生效的前提是，第一个参数必须是正则表达式。
+- `$$`：指代美元符号`$`。
+
+下面是一些例子。
+
+```javascript
+// $& 表示匹配的字符串，即`b`本身
+// 所以返回结果与原字符串一致
+'abbc'.replaceAll('b', '$&')
+// 'abbc'
+
+// $` 表示匹配结果之前的字符串
+// 对于第一个`b`，$` 指代`a`
+// 对于第二个`b`，$` 指代`ab`
+'abbc'.replaceAll('b', '$`')
+// 'aaabc'
+
+// $' 表示匹配结果之后的字符串
+// 对于第一个`b`，$' 指代`bc`
+// 对于第二个`b`，$' 指代`c`
+'abbc'.replaceAll('b', `$'`)
+// 'abccc'
+
+// $1 表示正则表达式的第一个组匹配，指代`ab`
+// $2 表示正则表达式的第二个组匹配，指代`bc`
+'abbc'.replaceAll(/(ab)(bc)/g, '$2$1')
+// 'bcab'
+
+// $$ 指代 $
+'abc'.replaceAll('b', '$$')
+// 'a$c'
+```
+
+`replaceAll()`的第二个参数`replacement`除了为字符串，也可以是一个函数，该函数的返回值将替换掉第一个参数`searchValue`匹配的文本。
+
+```javascript
+'aabbcc'.replaceAll('b', () => '_')
+// 'aa__cc'
+```
+
+上面例子中，`replaceAll()`的第二个参数是一个函数，该函数的返回值会替换掉所有`b`的匹配。
+
+这个替换函数可以接受多个参数。第一个参数是捕捉到的匹配内容，第二个参数是捕捉到的组匹配（有多少个组匹配，就有多少个对应的参数）。此外，最后还可以添加两个参数，倒数第二个参数是捕捉到的内容在整个字符串中的位置，最后一个参数是原字符串。
+
+```javascript
+const str = '123abc456';
+const regex = /(\d+)([a-z]+)(\d+)/g;
+
+function replacer(match, p1, p2, p3, offset, string) {
+  return [p1, p2, p3].join(' - ');
+}
+
+str.replaceAll(regex, replacer)
+// 123 - abc - 456
+```
+
+上面例子中，正则表达式有三个组匹配，所以`replacer()`函数的第一个参数`match`是捕捉到的匹配内容（即字符串`123abc456`），后面三个参数`p1`、`p2`、`p3`则依次为三个组匹配。
+
+## 实例方法：at()
+
+`at()`方法接受一个整数作为参数，返回参数指定位置的字符，支持负索引（即倒数的位置）。
+
+```javascript
+const str = 'hello';
+str.at(1) // "e"
+str.at(-1) // "o"
+```
+
+如果参数位置超出了字符串范围，`at()`返回`undefined`。
+
+该方法来自数组添加的`at()`方法，目前还是一个第三阶段的提案，可以参考《数组》一章的介绍。
+
+## 实例方法：toWellFormed()
+
+ES2024 引入了新的字符串方法`toWellFormed()`，用来处理 Unicode 的代理字符对问题（surrogates）。
+
+JavaScript 语言内部使用 UTF-16 格式，表示每个字符。UTF-16 只有16位，只能表示码点在`U+0000`到`U+FFFF`之间的 Unicode 字符。对于码点大于`U+FFFF`的 Unicode 字符（即码点大于16位的字符，`U+10000`到`U+10FFFF`），解决办法是使用代理字符对，即用两个 UTF-16 字符组合表示。
+
+具体来说，UTF-16 规定，`U+D800`至`U+DFFF`是空字符段，专门留给代理字符对使用。只要遇到这个范围内的码点，就知道它是代理字符对，本身没有意义，必须两个字符结合在一起解读。其中，前一个字符的范围规定为`0xD800`到`0xDBFF`之间，后一个字符的范围规定为`0xDC00`到`0xDFFF`之间。举例来说，码点`U+1D306`对应的字符为`𝌆`，它写成 UTF-16 就是`0xD834 0xDF06`。
+
+但是，字符串里面可能会出现单个代理字符对，即`U+D800`至`U+DFFF`里面的字符，它没有配对的另一个字符，无法进行解读，导致出现各种状况。
+
+`.toWellFormed()`就是为了解决这个问题，不改变原始字符串，返回一个新的字符串，将原始字符串里面的单个代理字符对，都替换为`U+FFFD`，从而可以在任何正常处理字符串的函数里面使用。
+
+```javascript
+"ab\uD800".toWellFormed() // 'ab�'
+```
+
+上面示例中，`\uD800`是单个的代理字符对，单独使用时没有意义。`toWellFormed()`将这个字符转为`\uFFFD`。
+
+再看下面的例子，`encodeURI()`遇到单个的代理字符对，会报错。
+
+```javascript
+const illFormed = "https://example.com/search?q=\uD800";
+
+encodeURI(illFormed) // 报错
+```
+
+`toWellFormed()`将其转换格式后，再使用`encodeURI()`就不会报错了。
+
+```javascript
+const illFormed = "https://example.com/search?q=\uD800";
+
+encodeURI(illFormed.toWellFormed()) // 正确
+```
+

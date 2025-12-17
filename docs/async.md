@@ -184,10 +184,10 @@ async function f() {
 }
 
 f().then(
-  v => console.log(v),
-  e => console.log(e)
+  v => console.log('resolve', v),
+  e => console.log('reject', e)
 )
-// Error: 出错了
+//reject Error: 出错了
 ```
 
 ### Promise 对象的状态变化
@@ -225,7 +225,7 @@ f().then(v => console.log(v))
 
 上面代码中，`await`命令的参数是数值`123`，这时等同于`return 123`。
 
-另一种情况是，`await`命令后面是一个`thenable`对象（即定义`then`方法的对象），那么`await`会将其等同于 Promise 对象。
+另一种情况是，`await`命令后面是一个`thenable`对象（即定义了`then`方法的对象），那么`await`会将其等同于 Promise 对象。
 
 ```javascript
 class Sleep {
@@ -470,7 +470,7 @@ function dbFuc(db) { //这里不需要 async
 }
 ```
 
-上面代码可能不会正常工作，原因是这时三个`db.post`操作将是并发执行，也就是同时执行，而不是继发执行。正确的写法是采用`for`循环。
+上面代码可能不会正常工作，原因是这时三个`db.post()`操作将是并发执行，也就是同时执行，而不是继发执行。正确的写法是采用`for`循环。
 
 ```javascript
 async function dbFuc(db) {
@@ -481,6 +481,23 @@ async function dbFuc(db) {
   }
 }
 ```
+
+另一种方法是使用数组的`reduce()`方法。
+
+```javascript
+async function dbFuc(db) {
+  let docs = [{}, {}, {}];
+
+  await docs.reduce(async (_, doc) => {
+    await _;
+    await db.post(doc);
+  }, undefined);
+}
+```
+
+上面例子中，`reduce()`方法的第一个参数是`async`函数，导致该函数的第一个参数是前一步操作返回的 Promise 对象，所以必须使用`await`等待它操作结束。另外，`reduce()`方法返回的是`docs`数组最后一个成员的`async`函数的执行结果，也是一个 Promise 对象，导致在它前面也必须加上`await`。
+
+上面的`reduce()`的参数函数里面没有`return`语句，原因是这个函数的主要目的是`db.post()`操作，不是返回值。而且`async`函数不管有没有`return`语句，总是返回一个 Promise 对象，所以这里的`return`是不必要的。
 
 如果确实希望多个请求并发执行，可以使用`Promise.all`方法。当三个请求都会`resolved`时，下面两种写法效果相同。
 
@@ -707,7 +724,7 @@ async function logInOrder(urls) {
 
 ## 顶层 await
 
-根据语法规格，`await`命令只能出现在 async 函数内部，否则都会报错。
+早期的语法规定是，`await`命令只能出现在 async 函数内部，否则都会报错。
 
 ```javascript
 // 报错
@@ -716,7 +733,7 @@ const data = await fetch('https://api.example.com');
 
 上面代码中，`await`命令独立使用，没有放在 async 函数里面，就会报错。
 
-目前，有一个[语法提案](https://github.com/tc39/proposal-top-level-await)，允许在模块的顶层独立使用`await`命令。这个提案的目的，是借用`await`解决模块异步加载的问题。
+从 [ES2022](https://github.com/tc39/proposal-top-level-await) 开始，允许在模块的顶层独立使用`await`命令，使得上面那行代码不会报错了。它的主要目的是使用`await`解决模块异步加载的问题。
 
 ```javascript
 // awaiting.js
@@ -732,19 +749,6 @@ export { output };
 
 上面代码中，模块`awaiting.js`的输出值`output`，取决于异步操作。我们把异步操作包装在一个 async 函数里面，然后调用这个函数，只有等里面的异步操作都执行，变量`output`才会有值，否则就返回`undefined`。
 
-上面的代码也可以写成立即执行函数的形式。
-
-```javascript
-// awaiting.js
-let output;
-(async function main() {
-  const dynamic = await import(someMission);
-  const data = await fetch(url);
-  output = someProcess(dynamic.default, data);
-})();
-export { output };
-```
-
 下面是加载这个模块的写法。
 
 ```javascript
@@ -754,7 +758,7 @@ import { output } from "./awaiting.js";
 function outputPlusValue(value) { return output + value }
 
 console.log(outputPlusValue(100));
-setTimeout(() => console.log(outputPlusValue(100), 1000);
+setTimeout(() => console.log(outputPlusValue(100)), 1000);
 ```
 
 上面代码中，`outputPlusValue()`的执行结果，完全取决于执行的时间。如果`awaiting.js`里面的异步操作没执行完，加载进来的`output`的值就是`undefined`。
@@ -784,7 +788,7 @@ function outputPlusValue(value) { return output + value }
 
 promise.then(() => {
   console.log(outputPlusValue(100));
-  setTimeout(() => console.log(outputPlusValue(100), 1000);
+  setTimeout(() => console.log(outputPlusValue(100)), 1000);
 });
 ```
 
@@ -811,12 +815,14 @@ import { output } from "./awaiting.js";
 function outputPlusValue(value) { return output + value }
 
 console.log(outputPlusValue(100));
-setTimeout(() => console.log(outputPlusValue(100), 1000);
+setTimeout(() => console.log(outputPlusValue(100)), 1000);
 ```
 
 上面代码的写法，与普通的模块加载完全一样。也就是说，模块的使用者完全不用关心，依赖模块的内部有没有异步操作，正常加载即可。
 
 这时，模块的加载会等待依赖模块（上例是`awaiting.js`）的异步操作完成，才执行后面的代码，有点像暂停在那里。所以，它总是会得到正确的`output`，不会因为加载时机的不同，而得到不一样的值。
+
+注意，顶层`await`只能用在 ES6 模块，不能用在 CommonJS 模块。这是因为 CommonJS 模块的`require()`是同步加载，如果有顶层`await`，就没法处理加载了。
 
 下面是顶层`await`的一些使用场景。
 

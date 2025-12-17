@@ -191,7 +191,7 @@ for (var value of range(0, 3)) {
 
 上面代码是一个类部署 Iterator 接口的写法。`Symbol.iterator`属性对应一个函数，执行后返回当前对象的遍历器对象。
 
-下面是通过遍历器实现指针结构的例子。
+下面是通过遍历器实现“链表”结构的例子。
 
 ```javascript
 function Obj(value) {
@@ -209,9 +209,8 @@ Obj.prototype[Symbol.iterator] = function() {
       var value = current.value;
       current = current.next;
       return { done: false, value: value };
-    } else {
-      return { done: true };
     }
+    return { done: true };
   }
   return iterator;
 }
@@ -245,9 +244,8 @@ let obj = {
             value: self.data[index++],
             done: false
           };
-        } else {
-          return { value: undefined, done: true };
         }
+        return { value: undefined, done: true };
       }
     };
   }
@@ -441,7 +439,7 @@ str // "hi"
 
 ## Iterator 接口与 Generator 函数
 
-`Symbol.iterator`方法的最简单实现，还是使用下一章要介绍的 Generator 函数。
+`Symbol.iterator()`方法的最简单实现，还是使用下一章要介绍的 Generator 函数。
 
 ```javascript
 let myIterable = {
@@ -450,7 +448,7 @@ let myIterable = {
     yield 2;
     yield 3;
   }
-}
+};
 [...myIterable] // [1, 2, 3]
 
 // 或者采用下面的简洁写法
@@ -469,13 +467,13 @@ for (let x of obj) {
 // "world"
 ```
 
-上面代码中，`Symbol.iterator`方法几乎不用部署任何代码，只要用 yield 命令给出每一步的返回值即可。
+上面代码中，`Symbol.iterator()`方法几乎不用部署任何代码，只要用 yield 命令给出每一步的返回值即可。
 
 ## 遍历器对象的 return()，throw()
 
-遍历器对象除了具有`next`方法，还可以具有`return`方法和`throw`方法。如果你自己写遍历器对象生成函数，那么`next`方法是必须部署的，`return`方法和`throw`方法是否部署是可选的。
+遍历器对象除了具有`next()`方法，还可以具有`return()`方法和`throw()`方法。如果你自己写遍历器对象生成函数，那么`next()`方法是必须部署的，`return()`方法和`throw()`方法是否部署是可选的。
 
-`return`方法的使用场合是，如果`for...of`循环提前退出（通常是因为出错，或者有`break`语句），就会调用`return`方法。如果一个对象在完成遍历前，需要清理或释放资源，就可以部署`return`方法。
+`return()`方法的使用场合是，如果`for...of`循环提前退出（通常是因为出错，或者有`break`语句），就会调用`return()`方法。如果一个对象在完成遍历前，需要清理或释放资源，就可以部署`return()`方法。
 
 ```javascript
 function readLinesSync(file) {
@@ -495,7 +493,7 @@ function readLinesSync(file) {
 }
 ```
 
-上面代码中，函数`readLinesSync`接受一个文件对象作为参数，返回一个遍历器对象，其中除了`next`方法，还部署了`return`方法。下面的两种情况，都会触发执行`return`方法。
+上面代码中，函数`readLinesSync`接受一个文件对象作为参数，返回一个遍历器对象，其中除了`next()`方法，还部署了`return()`方法。下面的两种情况，都会触发执行`return()`方法。
 
 ```javascript
 // 情况一
@@ -511,11 +509,11 @@ for (let line of readLinesSync(fileName)) {
 }
 ```
 
-上面代码中，情况一输出文件的第一行以后，就会执行`return`方法，关闭这个文件；情况二会在执行`return`方法关闭文件之后，再抛出错误。
+上面代码中，情况一输出文件的第一行以后，就会执行`return()`方法，关闭这个文件；情况二会在执行`return()`方法关闭文件之后，再抛出错误。
 
-注意，`return`方法必须返回一个对象，这是 Generator 规格决定的。
+注意，`return()`方法必须返回一个对象，这是 Generator 语法决定的。
 
-`throw`方法主要是配合 Generator 函数使用，一般的遍历器对象用不到这个方法。请参阅《Generator 函数》一章。
+`throw()`方法主要是配合 Generator 函数使用，一般的遍历器对象用不到这个方法。请参阅《Generator 函数》一章。
 
 ## for...of 循环
 
@@ -745,6 +743,8 @@ for (var key of Object.keys(someObject)) {
 另一个方法是使用 Generator 函数将对象重新包装一下。
 
 ```javascript
+const obj = { a: 1, b: 2, c: 3 }
+
 function* entries(obj) {
   for (let key of Object.keys(obj)) {
     yield [key, obj[key]];
@@ -818,3 +818,43 @@ for (var n of fibonacci) {
 ```
 
 上面的例子，会输出斐波纳契数列小于等于 1000 的项。如果当前项大于 1000，就会使用`break`语句跳出`for...of`循环。
+
+## 遍历器对象的工具方法
+
+ES2025 为遍历器接口返回的遍历器对象，添加了一些工具方法，便于处理数据。
+
+```javascript
+const arr = ['a', '', 'b', '', 'c', '', 'd', '', 'e'];
+
+arr.values() // creates an iterator
+  .filter(x => x.length > 0)
+  .drop(1)
+  .take(3)
+  .map(x => `=${x}=`)
+  .toArray()
+// ['=b=', '=c=', '=d=']
+```
+
+上面示例中，arr 是一个数组，它的 values() 方法返回的是一个遍历器对象，以前要使用 for...of 循环来处理，现在有了工具方法，就可以直接链式处理了。
+
+遍历器对象的工具方法，基本上与数组方法是对应的。
+
+- 返回遍历器对象的方法
+  - iterator.filter(filterFn)
+  - iterator.map(mapFn)
+  - iterator.flatMap(mapFn)
+- 返回布尔值的方法
+  - iterator.some(fn)
+  - iterator.every(fn)
+- 返回其他值的方法
+  - iterator.find(fn)
+  - iterator.reduce(reducer, initialValue?)
+- 不返回值的方法
+  - iterator.forEach(fn)
+
+以下是遍历器对象独有的方法。
+
+- iterator.drop(limit)：返回一个遍历器对象，丢弃前 limit 个成员。
+- iterator.take(limit)：返回一个遍历器对象，包含前 limit 个成员。
+- iterator.toArray()：返回一个数组，包含所有成员。
+

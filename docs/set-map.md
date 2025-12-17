@@ -21,7 +21,7 @@ for (let i of s) {
 
 上面代码通过`add()`方法向 Set 结构加入成员，结果表明 Set 结构不会添加重复的值。
 
-`Set`函数可以接受一个数组（或者具有 iterable 接口的其他数据结构）作为参数，用来初始化。
+`Set()`函数可以接受一个数组（或者具有 iterable 接口的其他数据结构）作为参数，用来初始化。
 
 ```javascript
 // 例一
@@ -88,6 +88,23 @@ set.size // 2
 
 上面代码表示，由于两个空对象不相等，所以它们被视为两个值。
 
+`Array.from()`方法可以将 Set 结构转为数组。
+
+```javascript
+const items = new Set([1, 2, 3, 4, 5]);
+const array = Array.from(items);
+```
+
+这就提供了去除数组重复成员的另一种方法。
+
+```javascript
+function dedupe(array) {
+  return Array.from(new Set(array));
+}
+
+dedupe([1, 1, 2, 3]) // [1, 2, 3]
+```
+
 ### Set 实例的属性和方法
 
 Set 结构的实例有以下属性。
@@ -114,11 +131,11 @@ s.has(1) // true
 s.has(2) // true
 s.has(3) // false
 
-s.delete(2);
+s.delete(2) // true
 s.has(2) // false
 ```
 
-下面是一个对比，看看在判断是否包括一个键上面，`Object`结构和`Set`结构的写法不同。
+下面是一个对比，判断是否包括一个键，`Object`结构和`Set`结构写法的不同。
 
 ```javascript
 // 对象的写法
@@ -140,23 +157,6 @@ properties.add('height');
 if (properties.has(someName)) {
   // do something
 }
-```
-
-`Array.from`方法可以将 Set 结构转为数组。
-
-```javascript
-const items = new Set([1, 2, 3, 4, 5]);
-const array = Array.from(items);
-```
-
-这就提供了去除数组重复成员的另一种方法。
-
-```javascript
-function dedupe(array) {
-  return Array.from(new Set(array));
-}
-
-dedupe([1, 1, 2, 3]) // [1, 2, 3]
 ```
 
 ### 遍历操作
@@ -281,7 +281,7 @@ let union = new Set([...a, ...b]);
 let intersect = new Set([...a].filter(x => b.has(x)));
 // set {2, 3}
 
-// 差集
+// （a 相对于 b 的）差集
 let difference = new Set([...a].filter(x => !b.has(x)));
 // Set {1}
 ```
@@ -302,27 +302,141 @@ set = new Set(Array.from(set, val => val * 2));
 
 上面代码提供了两种方法，直接在遍历操作中改变原来的 Set 结构。
 
+### 集合运算
+
+[ES2025](https://github.com/tc39/proposal-set-methods) 为 Set 结构添加了以下集合运算方法。
+
+- Set.prototype.intersection(other)：交集
+- Set.prototype.union(other)：并集
+- Set.prototype.difference(other)：差集
+- Set.prototype.symmetricDifference(other)：对称差集
+- Set.prototype.isSubsetOf(other)：判断是否为子集
+- Set.prototype.isSupersetOf(other)：判断是否为超集
+- Set.prototype.isDisjointFrom(other)：判断是否不相交
+
+以上方法的参数都必须是 Set 结构，或者是一个类似于 Set 的结构（拥有`size`属性，以及`keys()`和`has()`方法。
+
+`.union()`是并集运算，返回包含两个集合中存在的所有成员的集合。
+
+```javascript
+const frontEnd = new Set(["JavaScript", "HTML", "CSS"]);
+const backEnd = new Set(["Python", "Java", "JavaScript"]);
+
+const all = frontEnd.union(backEnd);
+// Set {"JavaScript", "HTML", "CSS", "Python", "Java"}
+```
+
+`.intersection()`是交集运算，返回同时包含在两个集合中的成员的集合。
+
+```javascript
+const frontEnd = new Set(["JavaScript", "HTML", "CSS"]);
+const backEnd = new Set(["Python", "Java", "JavaScript"]);
+
+const frontAndBackEnd = frontEnd.intersection(backEnd);
+// Set {"JavaScript"}
+```
+
+`.difference()`是差集运算，返回第一个集合中存在但第二个集合中不存在的所有成员的集合。
+
+```javascript
+const frontEnd = new Set(["JavaScript", "HTML", "CSS"]);
+const backEnd = new Set(["Python", "Java", "JavaScript"]);
+
+const onlyFrontEnd = frontEnd.difference(backEnd);
+// Set {"HTML", "CSS"}
+
+const onlyBackEnd = backEnd.difference(frontEnd);
+// Set {"Python", "Java"}
+```
+
+`.symmetryDifference()`是对称差集，返回两个集合的所有独一无二成员的集合，即去除了重复的成员。
+
+```javascript
+const frontEnd = new Set(["JavaScript", "HTML", "CSS"]);
+const backEnd = new Set(["Python", "Java", "JavaScript"]);
+
+const onlyFrontEnd = frontEnd.symmetricDifference(backEnd);
+// Set {"HTML", "CSS", "Python", "Java"} 
+
+const onlyBackEnd = backEnd.symmetricDifference(frontEnd);
+// Set {"Python", "Java", "HTML", "CSS"}
+```
+
+注意，返回结果中的成员顺序，由添加到集合的顺序决定。
+
+`.isSubsetOf()`返回一个布尔值，判断第一个集合是否为第二个集合的子集，即第一个集合的所有成员都是第二个集合的成员。
+
+```javascript
+const frontEnd = new Set(["JavaScript", "HTML", "CSS"]);
+const declarative = new Set(["HTML", "CSS"]);
+
+declarative.isSubsetOf(frontEnd);
+// true
+
+frontEndLanguages.isSubsetOf(declarativeLanguages);
+// false
+```
+
+任何集合都是自身的子集。
+
+```javascript
+frontEnd.isSubsetOf(frontEnd);
+// true
+```
+
+`isSupersetOf()`返回一个布尔值，表示第一个集合是否为第二个集合的超集，即第二个集合的所有成员都是第一个集合的成员。
+
+```javascript
+const frontEnd = new Set(["JavaScript", "HTML", "CSS"]);
+const declarative = new Set(["HTML", "CSS"]);
+
+declarative.isSupersetOf(frontEnd);
+// false
+
+frontEnd.isSupersetOf(declarative);
+// true
+```
+
+任何集合都是自身的超集。
+
+```javascript
+frontEnd.isSupersetOf(frontEnd);
+// true
+```
+
+`.isDisjointFrom()`判断两个集合是否不相交，即没有共同成员。
+
+```javascript
+const frontEnd = new Set(["JavaScript", "HTML", "CSS"]);
+const interpreted = new Set(["JavaScript", "Ruby", "Python"]);
+const compiled = new Set(["Java", "C++", "TypeScript"]);
+
+interpreted.isDisjointFrom(compiled);
+// true
+
+frontEnd.isDisjointFrom(interpreted);
+// false
+```
+
 ## WeakSet
 
 ### 含义
 
 WeakSet 结构与 Set 类似，也是不重复的值的集合。但是，它与 Set 有两个区别。
 
-首先，WeakSet 的成员只能是对象，而不能是其他类型的值。
+首先，WeakSet 的成员只能是对象和 Symbol 值，而不能是其他类型的值。
 
 ```javascript
 const ws = new WeakSet();
-ws.add(1)
-// TypeError: Invalid value used in weak set
-ws.add(Symbol())
-// TypeError: invalid value used in weak set
+ws.add(1) // 报错
+ws.add(Symbol()) // 不报错
 ```
 
-上面代码试图向 WeakSet 添加一个数值和`Symbol`值，结果报错，因为 WeakSet 只能放置对象。
+上面代码试图向 WeakSet 添加一个数值和`Symbol`值，结果前者报错了，因为 WeakSet 只能放置对象和 Symbol 值。
 
 其次，WeakSet 中的对象都是弱引用，即垃圾回收机制不考虑 WeakSet 对该对象的引用，也就是说，如果其他对象都不再引用该对象，那么垃圾回收机制会自动回收该对象所占用的内存，不考虑该对象还存在于 WeakSet 之中。
 
-这是因为垃圾回收机制依赖引用计数，如果一个值的引用次数不为`0`，垃圾回收机制就不会释放这块内存。结束使用该值之后，有时会忘记取消引用，导致内存无法释放，进而可能会引发内存泄漏。WeakSet 里面的引用，都不计入垃圾回收机制，所以就不存在这个问题。因此，WeakSet 适合临时存放一组对象，以及存放跟对象绑定的信息。只要这些对象在外部消失，它在 WeakSet 里面的引用就会自动消失。
+这是因为垃圾回收机制根据对象的可达性（reachability）来判断回收，如果对象还能被访问到，垃圾回收机制就不会释放这块内存。结束使用该值之后，有时会忘记取消引用，导致内存无法释放，进而可能会引发内存泄漏。WeakSet 里面的引用，都不计入垃圾回收机制，所以就不存在这个问题。因此，WeakSet 适合临时存放一组对象，以及存放跟对象绑定的信息。只要这些对象在外部消失，它在 WeakSet 里面的引用就会自动消失。
 
 由于上面这个特点，WeakSet 的成员是不适合引用的，因为它会随时消失。另外，由于 WeakSet 内部有多少个成员，取决于垃圾回收机制有没有运行，运行前后很可能成员个数是不一样的，而垃圾回收机制何时运行是不可预测的，因此 ES6 规定 WeakSet 不可遍历。
 
@@ -358,8 +472,8 @@ const ws = new WeakSet(b);
 
 WeakSet 结构有以下三个方法。
 
-- **WeakSet.prototype.add(value)**：向 WeakSet 实例添加一个新成员。
-- **WeakSet.prototype.delete(value)**：清除 WeakSet 实例的指定成员。
+- **WeakSet.prototype.add(value)**：向 WeakSet 实例添加一个新成员，返回 WeakSet 结构本身。
+- **WeakSet.prototype.delete(value)**：清除 WeakSet 实例的指定成员，清除成功返回`true`，如果在 WeakSet 中找不到该成员或该成员不是对象，返回`false`。
 - **WeakSet.prototype.has(value)**：返回一个布尔值，表示某个值是否在 WeakSet 实例之中。
 
 下面是一个例子。
@@ -373,10 +487,10 @@ ws.add(window);
 ws.add(obj);
 
 ws.has(window); // true
-ws.has(foo);    // false
+ws.has(foo); // false
 
-ws.delete(window);
-ws.has(window);    // false
+ws.delete(window); // true
+ws.has(window); // false
 ```
 
 WeakSet 没有`size`属性，没有办法遍历它的成员。
@@ -633,7 +747,7 @@ m.has(undefined)     // true
 
 **（5）Map.prototype.delete(key)**
 
-`delete`方法删除某个键，返回`true`。如果删除失败，返回`false`。
+`delete()`方法删除某个键，返回`true`。如果删除失败，返回`false`。
 
 ```javascript
 const m = new Map();
@@ -646,7 +760,7 @@ m.has(undefined)       // false
 
 **（6）Map.prototype.clear()**
 
-`clear`方法清除所有成员，没有返回值。
+`clear()`方法清除所有成员，没有返回值。
 
 ```javascript
 let map = new Map();
@@ -928,19 +1042,16 @@ wm2.get(k2) // "bar"
 
 `WeakMap`与`Map`的区别有两点。
 
-首先，`WeakMap`只接受对象作为键名（`null`除外），不接受其他类型的值作为键名。
+首先，`WeakMap`只接受对象（`null`除外）和 [Symbol 值](https://github.com/tc39/proposal-symbols-as-weakmap-keys)作为键名，不接受其他类型的值作为键名。
 
 ```javascript
 const map = new WeakMap();
-map.set(1, 2)
-// TypeError: 1 is not an object!
-map.set(Symbol(), 2)
-// TypeError: Invalid value used as weak map key
-map.set(null, 2)
-// TypeError: Invalid value used as weak map key
+map.set(1, 2) // 报错
+map.set(null, 2) // 报错
+map.set(Symbol(), 2) // 不报错
 ```
 
-上面代码中，如果将数值`1`和`Symbol`值作为 WeakMap 的键名，都会报错。
+上面代码中，如果将数值`1`和`null`作为 WeakMap 的键名，都会报错，将 Symbol 值作为键名不会报错。
 
 其次，`WeakMap`的键名所指向的对象，不计入垃圾回收机制。
 
@@ -981,9 +1092,9 @@ wm.set(element, 'some information');
 wm.get(element) // "some information"
 ```
 
-上面代码中，先新建一个 Weakmap 实例。然后，将一个 DOM 节点作为键名存入该实例，并将一些附加信息作为键值，一起存放在 WeakMap 里面。这时，WeakMap 里面对`element`的引用就是弱引用，不会被计入垃圾回收机制。
+上面代码中，先新建一个 WeakMap 实例。然后，将一个 DOM 节点作为键名存入该实例，并将一些附加信息作为键值，一起存放在 WeakMap 里面。这时，WeakMap 里面对`element`的引用就是弱引用，不会被计入垃圾回收机制。
 
-也就是说，上面的 DOM 节点对象的引用计数是`1`，而不是`2`。这时，一旦消除对该节点的引用，它占用的内存就会被垃圾回收机制释放。Weakmap 保存的这个键值对，也会自动消失。
+也就是说，上面的 DOM 节点对象除了 WeakMap 的弱引用外，其他位置对该对象的引用一旦消除，该对象占用的内存就会被垃圾回收机制释放。WeakMap 保存的这个键值对，也会自动消失。
 
 总之，`WeakMap`的专用场合就是，它的键所对应的对象，可能会在将来消失。`WeakMap`结构有助于防止内存泄漏。
 
@@ -1087,6 +1198,8 @@ undefined
 
 上面代码中，只要外部的引用消失，WeakMap 内部的引用，就会自动被垃圾回收清除。由此可见，有了 WeakMap 的帮助，解决内存泄漏就会简单很多。
 
+Chrome 浏览器的 Dev Tools 的 Memory 面板，有一个垃圾桶的按钮，可以强制垃圾回收（garbage collect）。这个按钮也能用来观察 WeakMap 里面的引用是否消失。
+
 ### WeakMap 的用途
 
 前文说过，WeakMap 应用的典型场合就是 DOM 节点作为键名。下面是一个例子。
@@ -1137,3 +1250,156 @@ c.dec()
 ```
 
 上面代码中，`Countdown`类的两个内部属性`_counter`和`_action`，是实例的弱引用，所以如果删除实例，它们也就随之消失，不会造成内存泄漏。
+
+## WeakRef
+
+WeakSet 和 WeakMap 是基于弱引用的数据结构，[ES2021](https://github.com/tc39/proposal-weakrefs) 更进一步，提供了 WeakRef 对象，用于直接创建对象的弱引用。
+
+```javascript
+let target = {};
+let wr = new WeakRef(target);
+```
+
+上面示例中，`target`是原始对象，构造函数`WeakRef()`创建了一个基于`target`的新对象`wr`。这里，`wr`就是一个 WeakRef 的实例，属于对`target`的弱引用，垃圾回收机制不会计入这个引用，也就是说，`wr`的引用不会妨碍原始对象`target`被垃圾回收机制清除。
+
+WeakRef 实例对象有一个`deref()`方法，如果原始对象存在，该方法返回原始对象；如果原始对象已经被垃圾回收机制清除，该方法返回`undefined`。
+
+```javascript
+let target = {};
+let wr = new WeakRef(target);
+
+let obj = wr.deref();
+if (obj) { // target 未被垃圾回收机制清除
+  // ...
+}
+```
+
+上面示例中，`deref()`方法可以判断原始对象是否已被清除。
+
+弱引用对象的一大用处，就是作为缓存，未被清除时可以从缓存取值，一旦清除缓存就自动失效。
+
+```javascript
+function makeWeakCached(f) {
+  const cache = new Map();
+  return key => {
+    const ref = cache.get(key);
+    if (ref) {
+      const cached = ref.deref();
+      if (cached !== undefined) return cached;
+    }
+
+    const fresh = f(key);
+    cache.set(key, new WeakRef(fresh));
+    return fresh;
+  };
+}
+
+const getImageCached = makeWeakCached(getImage);
+```
+
+上面示例中，`makeWeakCached()`用于建立一个缓存，缓存里面保存对原始文件的弱引用。
+
+注意，标准规定，一旦使用`WeakRef()`创建了原始对象的弱引用，那么在本轮事件循环（event loop），原始对象肯定不会被清除，只会在后面的事件循环才会被清除。
+
+## FinalizationRegistry
+
+[ES2021](https://github.com/tc39/proposal-weakrefs#finalizers) 引入了清理器注册表功能 FinalizationRegistry，用来指定目标对象被垃圾回收机制清除以后，所要执行的回调函数。
+
+首先，新建一个注册表实例。
+
+```javascript
+const registry = new FinalizationRegistry(heldValue => {
+  // ....
+});
+```
+
+上面代码中，`FinalizationRegistry()`是系统提供的构造函数，返回一个清理器注册表实例，里面登记了所要执行的回调函数。回调函数作为`FinalizationRegistry()`的参数传入，它本身有一个参数`heldValue`。
+
+然后，注册表实例的`register()`方法，用来注册所要观察的目标对象。
+
+```javascript
+registry.register(theObject, "some value");
+```
+
+上面示例中，`theObject`就是所要观察的目标对象，一旦该对象被垃圾回收机制清除，注册表就会在清除完成后，调用早前注册的回调函数，并将`some value`作为参数（前面的`heldValue`）传入回调函数。
+
+注意，注册表不对目标对象`theObject`构成强引用，属于弱引用。因为强引用的话，原始对象就不会被垃圾回收机制清除，这就失去使用注册表的意义了。
+
+回调函数的参数`heldValue`可以是任意类型的值，字符串、数值、布尔值、对象，甚至可以是`undefined`。
+
+最后，如果以后还想取消已经注册的回调函数，则要向`register()`传入第三个参数，作为标记值。这个标记值必须是对象，一般都用原始对象。接着，再使用注册表实例对象的`unregister()`方法取消注册。
+
+```javascript
+registry.register(theObject, "some value", theObject);
+// ...其他操作...
+registry.unregister(theObject);
+```
+
+上面代码中，`register()`方法的第三个参数就是标记值`theObject`。取消回调函数时，要使用`unregister()`方法，并将标记值作为该方法的参数。这里`register()`方法对第三个参数的引用，也属于弱引用。如果没有这个参数，则回调函数无法取消。
+
+由于回调函数被调用以后，就不再存在于注册表之中了，所以执行`unregister()`应该是在回调函数还没被调用之前。
+
+下面使用`FinalizationRegistry`，对前一节的缓存函数进行增强。
+
+```javascript
+function makeWeakCached(f) {
+  const cache = new Map();
+  const cleanup = new FinalizationRegistry(key => {
+    const ref = cache.get(key);
+    if (ref && !ref.deref()) cache.delete(key);
+  });
+
+  return key => {
+    const ref = cache.get(key);
+    if (ref) {
+      const cached = ref.deref();
+      if (cached !== undefined) return cached;
+    }
+
+    const fresh = f(key);
+    cache.set(key, new WeakRef(fresh));
+    cleanup.register(fresh, key);
+    return fresh;
+  };
+}
+
+const getImageCached = makeWeakCached(getImage);
+```
+
+上面示例与前一节的例子相比，就是增加一个清理器注册表，一旦缓存的原始对象被垃圾回收机制清除，会自动执行一个回调函数。该回调函数会清除缓存里面已经失效的键。
+
+下面是另一个例子。
+
+```javascript
+class Thingy {
+  #file;
+  #cleanup = file => {
+    console.error(
+      `The \`release\` method was never called for the \`Thingy\` for the file "${file.name}"`
+    );
+  };
+  #registry = new FinalizationRegistry(this.#cleanup);
+
+  constructor(filename) {
+    this.#file = File.open(filename);
+    this.#registry.register(this, this.#file, this.#file);
+  }
+
+  release() {
+    if (this.#file) {
+      this.#registry.unregister(this.#file);
+      File.close(this.#file);
+      this.#file = null;
+    }
+  }
+}
+```
+
+上面示例中，如果由于某种原因，`Thingy`类的实例对象没有调用`release()`方法，就被垃圾回收机制清除了，那么清理器就会调用回调函数`#cleanup()`，输出一条错误信息。
+
+由于无法知道清理器何时会执行，所以最好避免使用它。另外，如果浏览器窗口关闭或者进程意外退出，清理器则不会运行。
+
+## 参考链接
+
+- [Union, intersection, difference, and more are coming to JavaScript Sets](https://www.sonarsource.com/blog/union-intersection-difference-javascript-sets/)
+

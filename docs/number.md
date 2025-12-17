@@ -31,6 +31,97 @@ Number('0b111')  // 7
 Number('0o10')  // 8
 ```
 
+## 数值分隔符
+
+欧美语言中，较长的数值允许每三位添加一个分隔符（通常是一个逗号），增加数值的可读性。比如，`1000`可以写作`1,000`。
+
+[ES2021](https://github.com/tc39/proposal-numeric-separator)，允许 JavaScript 的数值使用下划线（`_`）作为分隔符。
+
+```javascript
+let budget = 1_000_000_000_000;
+budget === 10 ** 12 // true
+```
+
+这个数值分隔符没有指定间隔的位数，也就是说，可以每三位添加一个分隔符，也可以每一位、每两位、每四位添加一个。
+
+```javascript
+123_00 === 12_300 // true
+
+12345_00 === 123_4500 // true
+12345_00 === 1_234_500 // true
+```
+
+小数和科学计数法也可以使用数值分隔符。
+
+```javascript
+// 小数
+0.000_001
+
+// 科学计数法
+1e10_000
+```
+
+数值分隔符有几个使用注意点。
+
+- 不能放在数值的最前面（leading）或最后面（trailing）。
+- 不能两个或两个以上的分隔符连在一起。
+- 小数点的前后不能有分隔符。
+- 科学计数法里面，表示指数的`e`或`E`前后不能有分隔符。
+
+下面的写法都会报错。
+
+```javascript
+// 全部报错
+3_.141
+3._141
+1_e12
+1e_12
+123__456
+_1464301
+1464301_
+```
+
+除了十进制，其他进制的数值也可以使用分隔符。
+
+```javascript
+// 二进制
+0b1010_0001_1000_0101
+// 十六进制
+0xA0_B0_C0
+```
+
+可以看到，数值分隔符可以按字节顺序分隔数值，这在操作二进制位时，非常有用。
+
+注意，分隔符不能紧跟着进制的前缀`0b`、`0B`、`0o`、`0O`、`0x`、`0X`。
+
+```javascript
+// 报错
+0_b111111000
+0b_111111000
+```
+
+数值分隔符只是一种书写便利，对于 JavaScript 内部数值的存储和输出，并没有影响。
+
+```javascript
+let num = 12_345;
+
+num // 12345
+num.toString() // 12345
+```
+
+上面示例中，变量`num`的值为`12_345`，但是内部存储和输出的时候，都不会有数值分隔符。
+
+下面三个将字符串转成数值的函数，不支持数值分隔符。主要原因是语言的设计者认为，数值分隔符主要是为了编码时书写数值的方便，而不是为了处理外部输入的数据。
+
+- Number()
+- parseInt()
+- parseFloat()
+
+```javascript
+Number('123_456') // NaN
+parseInt('123_456') // 123
+```
+
 ## Number.isFinite(), Number.isNaN()
 
 ES6 在`Number`对象上，新提供了`Number.isFinite()`和`Number.isNaN()`两个方法。
@@ -397,16 +488,16 @@ Math.sign = Math.sign || function(x) {
 
 ### Math.cbrt()
 
-`Math.cbrt`方法用于计算一个数的立方根。
+`Math.cbrt()`方法用于计算一个数的立方根。
 
 ```javascript
 Math.cbrt(-1) // -1
 Math.cbrt(0)  // 0
 Math.cbrt(1)  // 1
-Math.cbrt(2)  // 1.2599210498948734
+Math.cbrt(2)  // 1.2599210498948732
 ```
 
-对于非数值，`Math.cbrt`方法内部也是先使用`Number`方法将其转为数值。
+对于非数值，`Math.cbrt()`方法内部也是先使用`Number()`方法将其转为数值。
 
 ```javascript
 Math.cbrt('8') // 2
@@ -561,6 +652,21 @@ Math.hypot(-3);          // 3
 
 如果参数不是数值，`Math.hypot`方法会将其转为数值。只要有一个参数无法转为数值，就会返回 NaN。
 
+### Math.f16round()
+
+ES2025 新增了 Math.f16round() 方法，返回最接近输入值的16位半精度浮点数。
+
+```javascript
+Math.f16round(5) // 5
+Math.f16round(5.05) // 5.05078125
+```
+
+16位浮点数共使用16个二进制位，其中指数使用5位，符号位使用1位，精度使用10位，因此可以表示 ±65,504 范围内的值，精度可以到达 1/1024。如果一个数超出了值的范围，则该方法返回 infinity。
+
+```javascript
+Math.f16round(100000) // Infinity
+```
+
 ### 对数方法
 
 ES6 新增了 4 个对数相关方法。
@@ -655,54 +761,11 @@ ES6 新增了 6 个双曲函数方法。
 - `Math.acosh(x)` 返回`x`的反双曲余弦（inverse hyperbolic cosine）
 - `Math.atanh(x)` 返回`x`的反双曲正切（inverse hyperbolic tangent）
 
-## 指数运算符
-
-ES2016 新增了一个指数运算符（`**`）。
-
-```javascript
-2 ** 2 // 4
-2 ** 3 // 8
-```
-
-这个运算符的一个特点是右结合，而不是常见的左结合。多个指数运算符连用时，是从最右边开始计算的。
-
-```javascript
-// 相当于 2 ** (3 ** 2)
-2 ** 3 ** 2
-// 512
-```
-
-上面代码中，首先计算的是第二个指数运算符，而不是第一个。
-
-指数运算符可以与等号结合，形成一个新的赋值运算符（`**=`）。
-
-```javascript
-let a = 1.5;
-a **= 2;
-// 等同于 a = a * a;
-
-let b = 4;
-b **= 3;
-// 等同于 b = b * b * b;
-```
-
-注意，V8 引擎的指数运算符与`Math.pow`的实现不相同，对于特别大的运算结果，两者会有细微的差异。
-
-```javascript
-Math.pow(99, 99)
-// 3.697296376497263e+197
-
-99 ** 99
-// 3.697296376497268e+197
-```
-
-上面代码中，两个运算结果的最后一位有效数字是有差异的。
-
 ## BigInt 数据类型
 
 ### 简介
 
-JavaScript 所有数字都保存成 64 位浮点数，这给数值的表示带来了两大限制。一是数值的精度只能到 53 个二进制位（相当于 16 个十进制位），大于这个范围的整数，JavaScript 是无法精确表示的，这使得 JavaScript 不适合进行科学和金融方面的精确计算。二是大于或等于2的1024次方的数值，JavaScript 无法表示，会返回`Infinity`。
+JavaScript 所有数字都保存成 64 位浮点数，这给数值的表示带来了两大限制。一是数值的精度只能到 53 个二进制位（相当于 16 个十进制位），大于这个范围的整数，JavaScript 是无法精确表示，这使得 JavaScript 不适合进行科学和金融方面的精确计算。二是大于或等于2的1024次方的数值，JavaScript 无法表示，会返回`Infinity`。
 
 ```javascript
 // 超过 53 个二进制位的数值，无法保持精度
@@ -712,7 +775,7 @@ Math.pow(2, 53) === Math.pow(2, 53) + 1 // true
 Math.pow(2, 1024) // Infinity
 ```
 
-[ES2020](https://github.com/tc39/proposal-bigint) 引入了一种新的数据类型 BigInt（大整数），来解决这个问题。BigInt 只用来表示整数，没有位数的限制，任何位数的整数都可以精确表示。
+[ES2020](https://github.com/tc39/proposal-bigint) 引入了一种新的数据类型 BigInt（大整数），来解决这个问题，这是 ECMAScript 的第八种数据类型。BigInt 只用来表示整数，没有位数的限制，任何位数的整数都可以精确表示。
 
 ```javascript
 const a = 2172141653n;
@@ -772,7 +835,7 @@ for (let i = 1; i <= 70; i++) {
 console.log(p); // 1.197857166996989e+100
 ```
 
-现在支持大整数了，就可以算了，浏览器的开发者工具运行下面代码，就OK。
+现在支持大整数了，就可以算了，浏览器的开发者工具运行下面代码，就 OK。
 
 ```javascript
 let p = 1n;
@@ -782,9 +845,9 @@ for (let i = 1n; i <= 70n; i++) {
 console.log(p); // 11978571...00000000n
 ```
 
-### BigInt 对象
+### BigInt 函数
 
-JavaScript 原生提供`BigInt`对象，可以用作构造函数生成 BigInt 类型的数值。转换规则基本与`Number()`一致，将其他类型的值转为 BigInt。
+JavaScript 原生提供`BigInt`函数，可以用它生成 BigInt 类型的数值。转换规则基本与`Number()`一致，将其他类型的值转为 BigInt。
 
 ```javascript
 BigInt(123) // 123n
@@ -793,7 +856,7 @@ BigInt(false) // 0n
 BigInt(true) // 1n
 ```
 
-`BigInt()`构造函数必须有参数，而且参数必须可以正常转为数值，下面的用法都会报错。
+`BigInt()`函数必须有参数，而且参数必须可以正常转为数值，下面的用法都会报错。
 
 ```javascript
 new BigInt() // TypeError
@@ -812,7 +875,7 @@ BigInt(1.5) // RangeError
 BigInt('1.5') // SyntaxError
 ```
 
-BigInt 对象继承了 Object 对象的两个实例方法。
+BigInt 继承了 Object 对象的两个实例方法。
 
 - `BigInt.prototype.toString()`
 - `BigInt.prototype.valueOf()`
@@ -821,11 +884,10 @@ BigInt 对象继承了 Object 对象的两个实例方法。
 
 - `BigInt.prototype.toLocaleString()`
 
-此外，还提供了三个静态方法。
+此外，还提供了两个静态方法。
 
 - `BigInt.asUintN(width, BigInt)`： 给定的 BigInt 转为 0 到 2<sup>width</sup> - 1 之间对应的值。
 - `BigInt.asIntN(width, BigInt)`：给定的 BigInt 转为 -2<sup>width - 1</sup> 到 2<sup>width - 1</sup> - 1 之间对应的值。
-- `BigInt.parseInt(string[, radix])`：近似于`Number.parseInt()`，将一个字符串转换成指定进制的 BigInt。
 
 ```javascript
 const max = 2n ** (64n - 1n) - 1n;
@@ -850,18 +912,6 @@ BigInt.asUintN(32, max) // 4294967295n
 ```
 
 上面代码中，`max`是一个64位的 BigInt，如果转为32位，前面的32位都会被舍弃。
-
-下面是`BigInt.parseInt()`的例子。
-
-```javascript
-// Number.parseInt() 与 BigInt.parseInt() 的对比
-Number.parseInt('9007199254740993', 10)
-// 9007199254740992
-BigInt.parseInt('9007199254740993', 10)
-// 9007199254740993n
-```
-
-上面代码中，由于有效数字超出了最大限度，`Number.parseInt`方法返回的结果是不精确的，而`BigInt.parseInt`方法正确返回了对应的 BigInt。
 
 对于二进制数组，BigInt 新增了两个类型`BigUint64Array`和`BigInt64Array`，这两种数据类型返回的都是64位 BigInt。`DataView`对象的实例方法`DataView.prototype.getBigInt64()`和`DataView.prototype.getBigUint64()`，返回的也是 BigInt。
 

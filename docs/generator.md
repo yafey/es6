@@ -259,7 +259,7 @@ b.next(12) // { value:8, done:false }
 b.next(13) // { value:42, done:true }
 ```
 
-上面代码中，第二次运行`next`方法的时候不带参数，导致 y 的值等于`2 * undefined`（即`NaN`），除以 3 以后还是`NaN`，因此返回对象的`value`属性也等于`NaN`。第三次运行`Next`方法的时候不带参数，所以`z`等于`undefined`，返回对象的`value`属性等于`5 + NaN + undefined`，即`NaN`。
+上面代码中，第二次运行`next`方法的时候不带参数，导致 y 的值等于`2 * undefined`（即`NaN`），除以 3 以后还是`NaN`，因此返回对象的`value`属性也等于`NaN`。第三次运行`next`方法的时候不带参数，所以`z`等于`undefined`，返回对象的`value`属性等于`5 + NaN + undefined`，即`NaN`。
 
 如果向`next`方法提供参数，返回结果就完全不一样了。上面代码第一次调用`b`的`next`方法时，返回`x+1`的值`6`；第二次调用`next`方法，将上一次`yield`表达式的值设为`12`，因此`y`等于`24`，返回`y / 3`的值`8`；第三次调用`next`方法，将上一次`yield`表达式的值设为`13`，因此`z`等于`13`，这时`x`等于`5`，`y`等于`24`，所以`return`语句的值等于`42`。
 
@@ -552,26 +552,26 @@ g.throw(1);
 
 上面代码中，`g.throw(1)`执行时，`next`方法一次都没有执行过。这时，抛出的错误不会被内部捕获，而是直接在外部抛出，导致程序出错。这种行为其实很好理解，因为第一次执行`next`方法，等同于启动执行 Generator 函数的内部代码，否则 Generator 函数还没有开始执行，这时`throw`方法抛错只可能抛出在函数外部。
 
-`throw`方法被捕获以后，会附带执行下一条`yield`表达式。也就是说，会附带执行一次`next`方法。
+`throw`方法被内部捕获以后，会附带执行到下一条`yield`表达式，这种情况下等同于执行一次`next`方法。
 
 ```javascript
 var gen = function* gen(){
   try {
-    yield console.log('a');
+    yield 1;
   } catch (e) {
-    // ...
+    yield 2;
   }
-  yield console.log('b');
-  yield console.log('c');
+  yield 3;
 }
 
 var g = gen();
-g.next() // a
-g.throw() // b
-g.next() // c
+g.next() // { value:1, done:false }
+g.throw() // { value:2, done:false }
+g.next() // { value:3, done:false }
+g.next() // { value:undefined, done:true }
 ```
 
-上面代码中，`g.throw`方法被捕获以后，自动执行了一次`next`方法，所以会打印`b`。另外，也可以看到，只要 Generator 函数内部部署了`try...catch`代码块，那么遍历器的`throw`方法抛出的错误，不影响下一次遍历。
+上面代码中，`g.throw`方法被内部捕获以后，等同于执行了一次`next`方法，所以返回`{ value:2, done:false }`。另外，也可以看到，只要 Generator 函数内部部署了`try...catch`代码块，那么遍历器的`throw`方法抛出的错误，不影响下一次遍历。
 
 另外，`throw`命令与`g.throw`方法是无关的，两者互不影响。
 
@@ -667,7 +667,7 @@ log(g());
 
 ## Generator.prototype.return()
 
-Generator 函数返回的遍历器对象，还有一个`return`方法，可以返回给定的值，并且终结遍历 Generator 函数。
+Generator 函数返回的遍历器对象，还有一个`return()`方法，可以返回给定的值，并且终结遍历 Generator 函数。
 
 ```javascript
 function* gen() {
@@ -683,9 +683,9 @@ g.return('foo') // { value: "foo", done: true }
 g.next()        // { value: undefined, done: true }
 ```
 
-上面代码中，遍历器对象`g`调用`return`方法后，返回值的`value`属性就是`return`方法的参数`foo`。并且，Generator 函数的遍历就终止了，返回值的`done`属性为`true`，以后再调用`next`方法，`done`属性总是返回`true`。
+上面代码中，遍历器对象`g`调用`return()`方法后，返回值的`value`属性就是`return()`方法的参数`foo`。并且，Generator 函数的遍历就终止了，返回值的`done`属性为`true`，以后再调用`next()`方法，`done`属性总是返回`true`。
 
-如果`return`方法调用时，不提供参数，则返回值的`value`属性为`undefined`。
+如果`return()`方法调用时，不提供参数，则返回值的`value`属性为`undefined`。
 
 ```javascript
 function* gen() {
@@ -696,11 +696,11 @@ function* gen() {
 
 var g = gen();
 
-g.next()        // { value: 1, done: false }
+g.next() // { value: 1, done: false }
 g.return() // { value: undefined, done: true }
 ```
 
-如果 Generator 函数内部有`try...finally`代码块，且正在执行`try`代码块，那么`return`方法会导致立刻进入`finally`代码块，执行完以后，整个函数才会结束。
+如果 Generator 函数内部有`try...finally`代码块，且正在执行`try`代码块，那么`return()`方法会导致立刻进入`finally`代码块，执行完以后，整个函数才会结束。
 
 ```javascript
 function* numbers () {
